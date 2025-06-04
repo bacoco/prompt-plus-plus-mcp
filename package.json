@@ -2,7 +2,14 @@
   "name": "prompt-plus-plus-mcp",
   "version": "1.0.0",
   "description": "MCP server for enhancing prompts using metaprompt strategies with two-step refinement workflow",
-  "keywords": ["mcp", "model-context-protocol", "prompt-engineering", "prompt-refinement", "ai", "claude"],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "prompt-engineering",
+    "prompt-refinement",
+    "ai",
+    "claude"
+  ],
   "author": {
     "name": "bacoco",
     "url": "https://github.com/bacoco"
@@ -10,7 +17,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bacoco/prompt-plus-plus-mcp.git"
+    "url": "git+https://github.com/bacoco/prompt-plus-plus-mcp.git"
   },
   "homepage": "https://github.com/bacoco/prompt-plus-plus-mcp#readme",
   "bugs": {
@@ -50,7 +57,9 @@
   "mcp": {
     "server": {
       "command": "node",
-      "args": ["dist/index.js"],
+      "args": [
+        "dist/index.js"
+      ],
       "env": {}
     }
   }
