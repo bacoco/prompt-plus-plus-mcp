@@ -1,7 +1,7 @@
 {
   "name": "prompt-plus-plus-mcp",
-  "version": "2.0.0",
-  "description": "MCP server for enhancing prompts using metaprompt strategies with two-step refinement workflow",
+  "version": "2.0.1",
+  "description": "MCP server for prompt enhancement using various metaprompt strategies with intelligent selection and two-step workflow",
   "keywords": [
     "mcp",
     "model-context-protocol",

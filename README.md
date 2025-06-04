@@ -1,13 +1,13 @@
 # Prompt++ MCP Server
 
-A powerful MCP (Model Context Protocol) server that enhances prompts using 10 different metaprompt strategies. Features a two-step refinement workflow for maximum control and quality.
+An MCP (Model Context Protocol) server that enhances prompts using various metaprompt strategies. Features intelligent strategy selection and a two-step refinement workflow.
 
 ## 🚀 Features
 
-- **🎯 Two-Step Workflow**: Prepare → Execute → Refine for ultimate control
-- **🧠 10 Metaprompt Strategies**: Each optimized for different prompt types
-- **🤖 Auto Strategy Selection**: AI picks the best strategy for your prompt  
-- **⚡ TypeScript**: Modern, type-safe implementation with official MCP SDK
+- **🎯 Two-Step Workflow**: Prepare → Execute → Refine for controlled enhancement
+- **🧠 20 Metaprompt Strategies**: Comprehensive collection for different needs
+- **🤖 Smart Strategy Selection**: Automatically picks the best approach for your prompt  
+- **⚡ TypeScript**: Type-safe implementation with official MCP SDK
 - **🔧 Easy Integration**: Works with Claude Desktop and Claude Code
 - **📦 Zero Dependencies**: No external APIs, runs completely locally
 - **🎨 Customizable**: Easy to add new strategies via JSON files
@@ -27,192 +27,135 @@ npm install
 npm run build
 ```
 
-## 📁 Project Structure
+## ⚙️ Configuration
 
-```
-prompt-plus-plus-mcp/
-├── metaprompts/           # 10 strategy JSON files
-│   ├── star.json         # ECHO method - comprehensive refinement
-│   ├── done.json         # Role-playing approach
-│   ├── physics.json      # Scientific analysis
-│   ├── verse.json        # Technical prompts
-│   ├── math.json         # Mathematical reasoning
-│   └── ...              # 5 more strategies
-├── src/
-│   ├── index.ts          # Main MCP server
-│   ├── strategy-manager.ts
-│   ├── prompt-refiner.ts
-│   └── types.ts
-├── dist/                 # Compiled JavaScript
-└── package.json          # npm configuration
-```
-
-## Available Strategies
-
-1. **star (ECHO Prompt)**: Comprehensive multi-stage refinement for complex prompts
-2. **done (Done Prompt)**: Structured approach with role-playing and advanced techniques
-3. **physics (Physics Prompt)**: Balanced approach between structure and advanced techniques
-4. **morphosis (Morphosis Prompt)**: Simplified approach for straightforward prompts
-5. **verse (Verse Prompt)**: Analyzes and improves prompt's strengths and weaknesses
-6. **phor (Phor Prompt)**: Advanced approach combining multiple prompt engineering techniques
-7. **bolism (Bolism Prompt)**: Optimized for autoregressive language models
-8. **math (Math Prompt)**: Specialized for mathematical and formal proofs
-9. **arpe (Arpe Prompt)**: Advanced reasoning and proof engineering approach
-10. **touille (Touille Prompt)**: General-purpose prompt refinement
-
-## 🏃 Running the Server
-
-```bash
-# Development mode
-npm run dev
-
-# Production mode
-npm run build
-npm start
-
-# Or if installed globally
-prompt-plus-plus-mcp
-```
-
-## MCP Prompts
-
-### Strategy-Specific Prompts
-- `refine_with_star`: Comprehensive multi-stage refinement (ECHO method)
-- `refine_with_done`: Structured approach with role-playing
-- `refine_with_physics`: Balanced scientific analysis
-- `refine_with_morphosis`: Quick refinement for simple prompts
-- `refine_with_verse`: Technical prompt enhancement
-- `refine_with_math`: Mathematical and formal reasoning
-- `refine_with_phor`: Flexible technique combination
-- `refine_with_bolism`: Optimization-focused refinement
-- `refine_with_arpe`: Advanced reasoning and proofs
-- `refine_with_touille`: General-purpose refinement
-
-### Special Prompts
-- `auto_refine`: Automatically selects best strategy and refines
-- `compare_refinements`: Compares multiple strategies for a prompt
-
-### Two-Step Workflow Prompts
-- `prepare_refinement`: Step 1 - Analyzes user prompt and returns metaprompt execution instructions
-- `execute_refinement`: Step 2 - Processes metaprompt results and returns final refined prompt
-
-### Support Tools
-- `list_strategies`: Lists all available strategies
-- `get_strategy_details`: Gets details about a specific strategy
-
-## 🔧 Setup Instructions
-
-### **Claude Desktop** (Recommended - No Installation Needed)
-
-1. **Add to Claude Desktop config:**
-   - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-   - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
-   - **Linux**: `~/.config/Claude/claude_desktop_config.json`
+### Claude Desktop
+Add to your `claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
     "prompt-plus-plus": {
-      "command": "npx",
-      "args": ["prompt-plus-plus-mcp"],
-      "env": {}
+      "command": "prompt-plus-plus-mcp"
     }
   }
 }
+}
 ```
 
-2. **Restart Claude Desktop** ✅
+### Claude Code
+The server works automatically with Claude Code once installed globally.
 
-**That's it!** `npx` automatically downloads and runs the latest version.
+## 📚 Available Strategies
 
-### **Claude Code**
+### Core Strategies (10)
+- **ECHO (star)**: Comprehensive multi-stage refinement
+- **Done**: Structured approach with role-playing
+- **Physics**: Balanced scientific analysis
+- **Morphosis**: Quick refinement for simple prompts
+- **Verse**: Technical prompt enhancement
+- **Math**: Mathematical and formal reasoning
+- **Phor**: Flexible technique combination
+- **Bolism**: Optimization-focused refinement
+- **Arpe**: Advanced reasoning and proofs
+- **Touille**: General-purpose refinement
 
+### Software Development (4)
+- **Architect**: System design and software architecture
+- **Boomerang**: Iterative development with feedback loops
+- **Reviewer**: Code review and quality assurance
+- **DevOps**: CI/CD and infrastructure automation
+
+### Advanced Thinking (6)
+- **Metacognitive**: Self-reflective thinking and bias analysis
+- **Adversarial**: Red-blue team attack/defense methodology
+- **Fractal**: Recursive decomposition across scales
+- **Quantum**: Parallel possibility exploration
+- **Temporal**: Multi-timeline analysis
+- **Synthesis**: Cross-domain concept fusion
+
+## 🎯 Usage
+
+### Basic Usage
+Use the `auto_refine` prompt to automatically select the best strategy:
+
+```
+Use the auto_refine prompt with user_prompt: "write a story about AI"
+```
+
+### Two-Step Workflow
+For more control, use the two-step process:
+
+1. **Prepare**: Analyze and select strategy
+```
+Use the prepare_refinement prompt with user_prompt: "your prompt here"
+```
+
+2. **Execute**: Process the metaprompt and get final result
+```
+Use the execute_refinement prompt with metaprompt_results: "..." and original_prompt: "..."
+```
+
+### Specific Strategies
+Use any strategy directly:
+
+```
+Use the refine_with_star prompt with user_prompt: "your prompt here"
+```
+
+### Strategy Information
+Get details about available strategies:
+
+```
+Use the list_strategies tool
+Use the get_strategy_details tool with strategy: "star"
+```
+
+## 🔧 Development
+
+### Adding New Strategies
+1. Create a new JSON file in `metaprompts/`
+2. Follow the existing format with `name`, `description`, `template`, and `examples`
+3. The server automatically loads all JSON files from the metaprompts directory
+
+### Testing
 ```bash
-# No installation needed - npx handles it
-claude mcp add prompt-plus-plus --scope user -- npx prompt-plus-plus-mcp
-
-# Verify
-claude mcp list
+npm test
 ```
 
-### **Alternative: Global Installation**
-
-If you prefer global installation:
+### Building
 ```bash
-npm install -g prompt-plus-plus-mcp
-
-# Then use "prompt-plus-plus-mcp" instead of "npx prompt-plus-plus-mcp"
+npm run build
 ```
 
-## 🎯 Two-Step Workflow Usage
+## 📁 Project Structure
 
-### **The Power of Two Steps:**
-1. **`prepare_refinement`**: Analyzes your prompt + returns metaprompt execution instructions
-2. **Execute metaprompt**: Process the metaprompt manually in Claude
-3. **`execute_refinement`**: Takes metaprompt results → returns final polished prompt
-
-### **Why Two Steps?**
-- 🎛️ **Full Control**: See exactly what metaprompt will be used
-- 🔍 **Transparency**: Understand the refinement process
-- ✨ **Quality**: Get cleaner, more polished final outputs
-- 🛠️ **Flexibility**: Can modify the approach between steps
-
-## 📝 Example Usage
-
-### Two-Step Refinement
 ```
-1. Use prompt: prepare_refinement
-   Input: "Write a Python function to sort a list"
-
-2. Claude returns metaprompt instructions
-   
-3. Execute the metaprompt manually in Claude
-
-4. Use prompt: execute_refinement
-   Input: [metaprompt results] + [original prompt]
-   
-5. Get final polished prompt ready to use!
-```
-
-### Quick One-Step
-```
-Use prompt: auto_refine
-Input: "Write a Python function to sort a list"
-Result: Direct refined prompt
+prompt-plus-plus-mcp/
+├── src/                    # TypeScript source code
+│   ├── index.ts           # Main MCP server
+│   ├── strategy-manager.ts # Strategy loading logic
+│   ├── prompt-refiner.ts  # Auto-selection heuristics
+│   └── types.ts          # Type definitions
+├── metaprompts/           # Strategy definitions (JSON)
+├── dist/                  # Compiled JavaScript
+└── package.json          # Package configuration
 ```
 
 ## 🤝 Contributing
 
-### Adding New Strategies
-Create a JSON file in `metaprompts/`:
-```json
-{
-  "name": "Your Strategy Name",
-  "description": "When to use this strategy",
-  "examples": ["Example prompt 1", "Example prompt 2"],
-  "template": "Your metaprompt template with [Insert initial prompt here] placeholder"
-}
-```
-
-### Other Contributions
-- 🧠 Improve auto-selection algorithm
-- 🔍 Enhance strategy comparison logic  
-- 📚 Add more examples and documentation
-- 🐛 Fix bugs and improve performance
+Contributions welcome! Please feel free to:
+- Add new metaprompt strategies
+- Improve the auto-selection heuristics
+- Enhance documentation
+- Report issues or suggest improvements
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) file
+MIT License - see [LICENSE](LICENSE) file for details.
 
-## 🙏 Credits
+## 🔗 Links
 
-Based on the original [Prompt++](https://huggingface.co/spaces/baconnier/prompt-plus-plus) project by baconnier.
-
-## 📊 npm Package
-
-```bash
-npm install -g prompt-plus-plus-mcp
-```
-
-[![npm version](https://badge.fury.io/js/prompt-plus-plus-mcp.svg)](https://badge.fury.io/js/prompt-plus-plus-mcp)
-[![Downloads](https://img.shields.io/npm/dm/prompt-plus-plus-mcp.svg)](https://npmjs.org/package/prompt-plus-plus-mcp)
+- [npm Package](https://www.npmjs.com/package/prompt-plus-plus-mcp)
+- [GitHub Repository](https://github.com/bacoco/prompt-plus-plus-mcp)
+- [Model Context Protocol](https://modelcontextprotocol.io/)
