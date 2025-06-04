@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 """
 Prompt++ MCP Server
-Enhances prompts using various metaprompt strategies
+Enhances prompts using various metaprompt strategies loaded from individual JSON files
 """
 
 import asyncio
 import json
 import logging
+import os
 from typing import Any, Dict, List
+from pathlib import Path
 
 from mcp.server import Server, NotificationOptions
 from mcp.server.models import InitializationOptions
-from mcp.types import Tool, TextContent, ImageContent, EmbeddedResource
+from mcp.types import Tool, TextContent
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -20,7 +22,7 @@ logger = logging.getLogger(__name__)
 class PromptPlusMCPServer:
     def __init__(self):
         self.server = Server("prompt-plus-mcp")
-        self.metaprompts = {}  # Will be loaded from meta_prompt.txt
+        self.metaprompts = {}
         self.setup_handlers()
         
     def setup_handlers(self):
@@ -141,9 +143,6 @@ class PromptPlusMCPServer:
         }    
     async def auto_select_strategy(self, prompt: str) -> Dict[str, Any]:
         """Automatically select the best strategy for a prompt"""
-        # This is a simplified version - in production, you'd want more sophisticated analysis
-        
-        # Analyze prompt characteristics
         prompt_lower = prompt.lower()
         word_count = len(prompt.split())
         
@@ -200,11 +199,10 @@ class PromptPlusMCPServer:
             "prompt": prompt,
             "comparisons": comparisons,
             "recommendation": max(comparisons.items(), 
-                                key=lambda x: x[1]["suitability"])[0]
+                                key=lambda x: x[1]["suitability"])[0] if comparisons else None
         }    
     def _assess_suitability(self, prompt: str, strategy: str) -> int:
         """Assess how suitable a strategy is for a prompt (0-100)"""
-        # Simplified scoring - in production, use more sophisticated analysis
         base_score = 50
         
         if strategy == "star" and len(prompt.split()) > 20:
@@ -226,44 +224,44 @@ class PromptPlusMCPServer:
         else:
             return "high"
     
-    def load_metaprompts(self, filepath: str = "meta_prompt.txt"):
-        """Load metaprompts from file"""
-        try:
-            with open(filepath, 'r') as f:
-                content = f.read()
-                # Extract JSON from the file
-                json_start = content.find('{')
-                json_end = content.rfind('}') + 1
-                json_content = content[json_start:json_end]
-                self.metaprompts = json.loads(json_content)
-                logger.info(f"Loaded {len(self.metaprompts)} metaprompt strategies")
-        except Exception as e:
-            logger.error(f"Error loading metaprompts: {e}")
-            # Fallback to a simple default
-            self.metaprompts = {
-                "simple": {
-                    "name": "Simple Refinement",
-                    "description": "Basic prompt improvement",
-                    "template": "Improve this prompt: [Insert initial prompt here]",
-                    "examples": []
-                }
-            }    
+    def load_metaprompts(self):
+        """Load metaprompts from individual JSON files in the metaprompts directory"""
+        metaprompts_dir = Path(__file__).parent.parent / "metaprompts"
+        
+        if not metaprompts_dir.exists():
+            logger.error(f"Metaprompts directory not found: {metaprompts_dir}")
+            return
+        
+        # Load each JSON file in the metaprompts directory
+        for json_file in metaprompts_dir.glob("*.json"):
+            try:
+                with open(json_file, 'r', encoding='utf-8') as f:
+                    metaprompt = json.load(f)
+                    key = json_file.stem  # filename without extension
+                    self.metaprompts[key] = metaprompt
+                    logger.info(f"Loaded metaprompt: {key}")
+            except Exception as e:
+                logger.error(f"Error loading {json_file}: {e}")
+        
+        logger.info(f"Loaded {len(self.metaprompts)} metaprompt strategies")    
     async def run(self):
         """Run the MCP server"""
         self.load_metaprompts()
         
         # Run the server using stdin/stdout streams
+        init_options = InitializationOptions(
+            server_name="prompt-plus-mcp",
+            server_version="1.0.0",
+            capabilities=self.server.get_capabilities(
+                notification_options=NotificationOptions(),
+                experimental_capabilities={},
+            ),
+        )
+        
         async with self.server.run(
             stdin=asyncio.StreamReader(),
             stdout=asyncio.StreamWriter(),
-            InitializationOptions(
-                server_name="prompt-plus-mcp",
-                server_version="1.0.0",
-                capabilities=self.server.get_capabilities(
-                    notification_options=NotificationOptions(),
-                    experimental_capabilities={},
-                ),
-            ),
+            initialization_options=init_options
         ) as _:
             await asyncio.Future()  # Run forever
 

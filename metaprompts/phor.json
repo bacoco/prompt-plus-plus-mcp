@@ -1,0 +1,8 @@
+{
+  "name": "Phor Prompt",
+  "description": "Employ this advanced approach when you need to combine multiple prompt engineering techniques. It's ideal for complex tasks requiring both clarity and sophisticated prompting methods. Select this over 'star' when you want a more flexible, technique-focused approach.",
+  "template": "Create an effective prompt from this one:\n\nInitial Prompt: [Insert initial prompt here]\n\nUse these simple steps:\n\n1. Look at the task closely, focusing on goals, needs, and limits.\n2. Make prompts better by making language clear without changing the main idea.\n3. Keep a logical flow by putting reasoning steps first.\n4. Use good examples with [placeholders] for tricky parts.\n5. Use simple words; remove unneeded instructions.\n6. Use markdown for easy reading; skip code blocks unless needed.\n7. Keep user content like guides and examples.\n8. Add constants like guides and rubrics.\n9. Clearly state output format including structure and syntax.\n\nOnly provide the output in the following JSON format enclosed in <json> tags:\n\n<json>\n{\n\"initial_prompt_evaluation\": \"Your evaluation of the initial prompt with Strengths and Weaknesses in a string as bullet points format\",\n\"refined_prompt\": \"Your refined prompt\",\n\"explanation_of_refinements\": \"Explanation of the techniques used and improvements made, also include the extract of final prompt where it made. Answer in bullet points if accurate. Output in a single comprehensive string\"\n}\n</json>",
+  "examples": [
+    "How does a computer work?"
+  ]
+}
