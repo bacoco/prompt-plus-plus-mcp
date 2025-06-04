@@ -101,6 +101,40 @@ class PromptPlusMCPServer:
                 )
             )
             
+            # Add two-step workflow prompts
+            prompts.append(
+                Prompt(
+                    name="prepare_refinement",
+                    description="Step 1: Analyze user prompt and return metaprompt execution instructions",
+                    arguments=[
+                        {
+                            "name": "user_prompt",
+                            "description": "The prompt to prepare for refinement",
+                            "required": True
+                        }
+                    ]
+                )
+            )
+            
+            prompts.append(
+                Prompt(
+                    name="execute_refinement",
+                    description="Step 2: Process metaprompt results and return final refined prompt",
+                    arguments=[
+                        {
+                            "name": "metaprompt_results",
+                            "description": "The results from executing the metaprompt",
+                            "required": True
+                        },
+                        {
+                            "name": "original_prompt",
+                            "description": "The original user prompt (for context)",
+                            "required": True
+                        }
+                    ]
+                )
+            )
+            
             return prompts
         
         @self.server.get_prompt()
@@ -217,6 +251,89 @@ Return your response in valid JSON format."""
                     SamplingMessage(
                         role="user",
                         content=TextContent(type="text", text=comparison_text)
+                    )
+                ]
+                
+                return PromptMessage(messages=messages)
+            
+            elif name == "prepare_refinement":
+                # Step 1: Analyze prompt and return metaprompt execution instructions
+                auto_result = self.prompt_refiner.auto_select_strategy(user_prompt)
+                strategy_key = auto_result["recommended_strategy"]
+                strategy = self.strategy_manager.get_strategy(strategy_key)
+                
+                if not strategy:
+                    raise ValueError(f"Strategy '{strategy_key}' not found")
+                
+                # Create the metaprompt template with user's prompt
+                metaprompt_template = strategy.template.replace("[Insert initial prompt here]", user_prompt)
+                
+                # Return instructions for executing the metaprompt
+                messages = [
+                    SamplingMessage(
+                        role="user",
+                        content=TextContent(
+                            type="text",
+                            text=f"""STEP 1 COMPLETE: Metaprompt preparation for prompt refinement.
+
+**Analysis Results:**
+- Selected Strategy: {strategy.name}
+- Reason: {auto_result['reason']}
+- Alternative: {auto_result['alternative_name']}
+
+**Instructions for Next Step:**
+Execute the following metaprompt and return the results to the `execute_refinement` prompt:
+
+---
+{metaprompt_template}
+---
+
+**Expected Output:** Process this metaprompt completely and provide your detailed analysis and refined prompt. Then call the `execute_refinement` prompt with your results to get the final refined prompt.
+
+**Original Prompt (for reference):** {user_prompt}"""
+                        )
+                    )
+                ]
+                
+                return PromptMessage(messages=messages)
+            
+            elif name == "execute_refinement":
+                # Step 2: Process metaprompt results and return final refined prompt
+                metaprompt_results = arguments.get("metaprompt_results", "")
+                original_prompt = arguments.get("original_prompt", user_prompt)
+                
+                if not metaprompt_results:
+                    raise ValueError("metaprompt_results is required for execute_refinement")
+                
+                messages = [
+                    SamplingMessage(
+                        role="user",
+                        content=TextContent(
+                            type="text",
+                            text=f"""STEP 2: Final refinement processing.
+
+**Task:** Extract the refined prompt from the metaprompt execution results and format it as the final output.
+
+**Original Prompt:** {original_prompt}
+
+**Metaprompt Execution Results:**
+{metaprompt_results}
+
+**Your Task:** 
+1. Analyze the metaprompt execution results above
+2. Extract the key improvements and refined prompt
+3. Return a clean, final refined prompt that incorporates all the enhancements
+4. Provide a brief summary of the key improvements made
+
+**Format your response as:**
+```
+REFINED PROMPT:
+[The final, polished prompt ready for use]
+
+IMPROVEMENTS SUMMARY:
+[Brief summary of key enhancements made]
+```"""
+                        )
                     )
                 ]
                 

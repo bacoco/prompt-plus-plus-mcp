@@ -1,16 +1,20 @@
 # Prompt++ MCP (Model Context Protocol) Server
 
-An MCP server implementation of the Prompt++ prompt enhancement system. This server provides tools to refine and improve prompts using various metaprompt strategies loaded from individual JSON files.
+An MCP server implementation of the Prompt++ prompt enhancement system. This server provides prompts to refine and improve user prompts using various metaprompt strategies loaded from individual JSON files.
 
 ## Features
 
 - **10 Metaprompt Strategies**: Each strategy is stored in its own JSON file for easy customization
+- **Two-Step Workflow**: Prepare metaprompt instructions, then execute and refine
 - **Automatic Strategy Selection**: AI-powered selection of the best strategy for your prompt
 - **Strategy Comparison**: Compare multiple strategies to find the best fit
+- **TypeScript Implementation**: Modern, type-safe implementation with official MCP SDK
 - **Local Processing**: No API dependencies, all processing happens locally
 - **Modular Design**: Easy to add new strategies or modify existing ones
 
 ## Installation
+
+### TypeScript/Node.js Version (Recommended)
 
 1. Clone the repository:
 ```bash
@@ -19,6 +23,18 @@ cd prompt-plus-plus-mcp
 ```
 
 2. Install dependencies:
+```bash
+npm install
+```
+
+3. Build the project:
+```bash
+npm run build
+```
+
+### Python Version (Legacy)
+
+1. Install Python dependencies:
 ```bash
 pip install -r requirements.txt
 ```
@@ -33,11 +49,17 @@ prompt-plus-plus-mcp/
 │   ├── physics.json      # Physics Prompt
 │   └── ...              # Other strategies
 ├── src/
-│   ├── __init__.py
-│   └── server.py         # Main MCP server
-├── package.json          # MCP configuration
-├── requirements.txt      # Python dependencies
-└── test_server.py        # Local testing script
+│   ├── index.ts          # Main MCP server (TypeScript)
+│   ├── strategy-manager.ts
+│   ├── prompt-refiner.ts
+│   ├── types.ts
+│   ├── server.py         # Legacy Python server
+│   └── core/             # Legacy Python modules
+├── dist/                 # Compiled TypeScript
+├── package.json          # Node.js/MCP configuration
+├── tsconfig.json         # TypeScript configuration
+├── requirements.txt      # Python dependencies (legacy)
+└── test_server.py        # Python testing script (legacy)
 ```
 
 ## Available Strategies
@@ -53,34 +75,68 @@ prompt-plus-plus-mcp/
 9. **arpe (Arpe Prompt)**: Advanced reasoning and proof engineering approach
 10. **touille (Touille Prompt)**: General-purpose prompt refinement
 
-## MCP Tools
+## Running the Server
 
-### refine_prompt
-Refine a prompt using a specific metaprompt strategy.
+### TypeScript/Node.js Version
+```bash
+# Development mode
+npm run dev
 
-**Parameters:**
-- `prompt` (string): The prompt to refine
-- `strategy` (string): The metaprompt strategy to use
+# Production mode
+npm run build
+npm start
+```
 
-### auto_select_strategy
-Automatically select the best metaprompt strategy for a given prompt.
+### Python Version (Legacy)
+```bash
+# Activate virtual environment first
+source mcp_env/bin/activate
+python -m src.server
+```
 
-**Parameters:**
-- `prompt` (string): The prompt to analyze
+## MCP Prompts
 
-### list_strategies
-List all available metaprompt strategies with descriptions.
+### Strategy-Specific Prompts
+- `refine_with_star`: Comprehensive multi-stage refinement (ECHO method)
+- `refine_with_done`: Structured approach with role-playing
+- `refine_with_physics`: Balanced scientific analysis
+- `refine_with_morphosis`: Quick refinement for simple prompts
+- `refine_with_verse`: Technical prompt enhancement
+- `refine_with_math`: Mathematical and formal reasoning
+- `refine_with_phor`: Flexible technique combination
+- `refine_with_bolism`: Optimization-focused refinement
+- `refine_with_arpe`: Advanced reasoning and proofs
+- `refine_with_touille`: General-purpose refinement
 
-### compare_strategies
-Compare multiple strategies for a given prompt.
+### Special Prompts
+- `auto_refine`: Automatically selects best strategy and refines
+- `compare_refinements`: Compares multiple strategies for a prompt
 
-**Parameters:**
-- `prompt` (string): The prompt to refine
-- `strategies` (array): List of strategies to compare (optional)
+### Two-Step Workflow Prompts
+- `prepare_refinement`: Step 1 - Analyzes user prompt and returns metaprompt execution instructions
+- `execute_refinement`: Step 2 - Processes metaprompt results and returns final refined prompt
 
-## Usage with Cursor
+### Support Tools
+- `list_strategies`: Lists all available strategies
+- `get_strategy_details`: Gets details about a specific strategy
 
-1. Add to your Cursor settings:
+## Usage with Claude Code
+
+### TypeScript/Node.js Version (Recommended)
+1. Add to your MCP configuration:
+```json
+{
+  "mcpServers": {
+    "prompt-plus": {
+      "command": "node",
+      "args": ["dist/index.js"],
+      "cwd": "/path/to/prompt-plus-plus-mcp"
+    }
+  }
+}
+```
+
+### Python Version (Legacy)
 ```json
 {
   "mcpServers": {
@@ -93,10 +149,12 @@ Compare multiple strategies for a given prompt.
 }
 ```
 
-2. Use the tools in Cursor:
-   - The server returns structured responses with `instruction_for_cursor`
-   - Copy the instruction to a new Cursor chat
-   - Ask Cursor to process the metaprompt and return the JSON response
+## Two-Step Workflow Usage
+
+1. **Step 1**: Use `prepare_refinement` prompt with your prompt
+2. **Step 2**: Execute the returned metaprompt manually
+3. **Step 3**: Use `execute_refinement` prompt with the results
+4. **Result**: Get a clean, polished final prompt
 
 ## Example Usage
 
