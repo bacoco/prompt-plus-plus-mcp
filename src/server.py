@@ -12,7 +12,7 @@ from pathlib import Path
 
 from mcp.server import Server, NotificationOptions
 from mcp.server.models import InitializationOptions
-from mcp.types import Tool, TextContent, Prompt, PromptMessage, UserMessage, AssistantMessage
+from mcp.types import Tool, TextContent, Prompt, PromptMessage, SamplingMessage
 
 from .core import StrategyManager, PromptRefiner
 
@@ -126,8 +126,11 @@ class PromptPlusMCPServer:
                 
                 # Create the meta-prompt
                 messages = [
-                    UserMessage(
-                        content=f"""You are an expert prompt engineer. Based on the analysis, the '{strategy.name}' strategy is most suitable for this prompt because: {auto_result['reason']}.
+                    SamplingMessage(
+                        role="user",
+                        content=TextContent(
+                            type="text",
+                            text=f"""You are an expert prompt engineer. Based on the analysis, the '{strategy.name}' strategy is most suitable for this prompt because: {auto_result['reason']}.
 
 Apply the following meta-prompt template to refine the user's prompt. Process it completely and return a JSON response with:
 1. initial_prompt_evaluation: Analysis of the original prompt's strengths and weaknesses
@@ -138,6 +141,7 @@ Meta-prompt template:
 {strategy.template.replace("[Insert initial prompt here]", user_prompt)}
 
 Remember to return your response in valid JSON format."""
+                        )
                     )
                 ]
                 
@@ -153,8 +157,11 @@ Remember to return your response in valid JSON format."""
                 
                 # Create the meta-prompt
                 messages = [
-                    UserMessage(
-                        content=f"""You are an expert prompt engineer. Apply the '{strategy.name}' meta-prompt template to refine the following user prompt.
+                    SamplingMessage(
+                        role="user",
+                        content=TextContent(
+                            type="text",
+                            text=f"""You are an expert prompt engineer. Apply the '{strategy.name}' meta-prompt template to refine the following user prompt.
 
 {strategy.description}
 
@@ -167,6 +174,7 @@ Meta-prompt template:
 {strategy.template.replace("[Insert initial prompt here]", user_prompt)}
 
 Remember to return your response in valid JSON format."""
+                        )
                     )
                 ]
                 
@@ -205,7 +213,12 @@ Remember to return your response in valid JSON format."""
 
 Return your response in valid JSON format."""
                 
-                messages = [UserMessage(content=comparison_text)]
+                messages = [
+                    SamplingMessage(
+                        role="user",
+                        content=TextContent(type="text", text=comparison_text)
+                    )
+                ]
                 
                 return PromptMessage(messages=messages)
             
@@ -311,22 +324,24 @@ Return your response in valid JSON format."""
         # Initialize components
         self.initialize_components()
         
-        # Run the server using stdin/stdout streams
-        init_options = InitializationOptions(
-            server_name="prompt-plus-mcp",
-            server_version="1.0.0",
-            capabilities=self.server.get_capabilities(
-                notification_options=NotificationOptions(),
-                experimental_capabilities={},
-            ),
-        )
+        # Run the server using stdio transport
+        from mcp.server.stdio import stdio_server
         
-        async with self.server.run(
-            stdin=asyncio.StreamReader(),
-            stdout=asyncio.StreamWriter(),
-            initialization_options=init_options
-        ) as _:
-            await asyncio.Future()  # Run forever
+        async with stdio_server() as (read_stream, write_stream):
+            init_options = InitializationOptions(
+                server_name="prompt-plus-mcp",
+                server_version="1.0.0",
+                capabilities=self.server.get_capabilities(
+                    notification_options=NotificationOptions(),
+                    experimental_capabilities={},
+                ),
+            )
+            
+            await self.server.run(
+                read_stream=read_stream,
+                write_stream=write_stream,
+                initialization_options=init_options
+            )
 
 
 def main():
