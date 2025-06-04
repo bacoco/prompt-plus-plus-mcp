@@ -11,8 +11,26 @@ export class PromptRefiner {
     let recommendedKey: string;
     let reason: string;
     
-    // Enhanced heuristics for strategy selection with new code-focused strategies
-    if (this.hasKeywords(promptLower, ["story", "creative", "narrative", "fiction"])) {
+    // Ultra-enhanced heuristics with revolutionary thinking strategies
+    if (this.hasKeywords(promptLower, ["thinking", "cognitive", "bias", "assumption", "meta", "recursive", "self-reflection"])) {
+      recommendedKey = "metacognitive";
+      reason = "Meta-cognitive reflection for examining thinking processes and cognitive biases";
+    } else if (this.hasKeywords(promptLower, ["attack", "defend", "secure", "vulnerability", "stress test", "robust", "adversarial"])) {
+      recommendedKey = "adversarial";
+      reason = "Adversarial red-blue team approach for stress-testing and fortification";
+    } else if (this.hasKeywords(promptLower, ["scale", "pattern", "recursive", "self-similar", "fractal", "hierarchy", "decomposition"])) {
+      recommendedKey = "fractal";
+      reason = "Fractal recursive decomposition for scale-invariant problem solving";
+    } else if (this.hasKeywords(promptLower, ["uncertainty", "multiple", "parallel", "probability", "quantum", "superposition", "ambiguous"])) {
+      recommendedKey = "quantum";
+      reason = "Quantum superposition thinking for navigating uncertainty and parallel possibilities";
+    } else if (this.hasKeywords(promptLower, ["time", "timeline", "historical", "future", "past", "temporal", "causality", "evolution"])) {
+      recommendedKey = "temporal";
+      reason = "Temporal multi-timeline analysis for time-aware problem solving";
+    } else if (this.hasKeywords(promptLower, ["combine", "synthesis", "fusion", "innovation", "cross-domain", "disparate", "creative fusion"])) {
+      recommendedKey = "synthesis";
+      reason = "Synthesis fusion engine for combining disparate concepts and breakthrough innovation";
+    } else if (this.hasKeywords(promptLower, ["story", "creative", "narrative", "fiction"])) {
       recommendedKey = "star";
       reason = "Comprehensive approach ideal for creative and narrative tasks";
     } else if (this.hasKeywords(promptLower, ["architecture", "system design", "microservices", "scalability", "enterprise"])) {
@@ -52,7 +70,7 @@ export class PromptRefiner {
 
     const strategy = this.strategyManager.getStrategy(recommendedKey);
     
-    // Determine alternative with new strategies
+    // Determine alternative with ultrathink and specialized strategies
     const alternatives: Record<string, string> = {
       "star": "verse",
       "verse": "physics", 
@@ -67,7 +85,13 @@ export class PromptRefiner {
       "architect": "devops",
       "boomerang": "reviewer",
       "reviewer": "boomerang",
-      "devops": "architect"
+      "devops": "architect",
+      "metacognitive": "adversarial",
+      "adversarial": "fractal",
+      "fractal": "quantum",
+      "quantum": "temporal",
+      "temporal": "synthesis",
+      "synthesis": "metacognitive"
     };
     
     const alternativeKey = alternatives[recommendedKey] || "star";
