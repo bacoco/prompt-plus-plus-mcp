@@ -1,6 +1,6 @@
 {
   "name": "prompt-plus-plus-mcp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "MCP server for enhancing prompts using metaprompt strategies with two-step refinement workflow",
   "keywords": [
     "mcp",
@@ -52,7 +52,7 @@
     "tsx": "^4.0.0"
   },
   "bin": {
-    "prompt-plus-plus-mcp": "dist/index.js"
+    "prompt-plus-plus-mcp": "./dist/index.js"
   },
   "mcp": {
     "server": {
