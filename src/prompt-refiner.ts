@@ -11,13 +11,25 @@ export class PromptRefiner {
     let recommendedKey: string;
     let reason: string;
     
-    // Heuristics for strategy selection
+    // Enhanced heuristics for strategy selection with new code-focused strategies
     if (this.hasKeywords(promptLower, ["story", "creative", "narrative", "fiction"])) {
       recommendedKey = "star";
       reason = "Comprehensive approach ideal for creative and narrative tasks";
-    } else if (this.hasKeywords(promptLower, ["code", "programming", "technical", "implement", "function"])) {
-      recommendedKey = "verse";
-      reason = "Structured approach excellent for technical and coding tasks";
+    } else if (this.hasKeywords(promptLower, ["architecture", "system design", "microservices", "scalability", "enterprise"])) {
+      recommendedKey = "architect";
+      reason = "Specialized approach for software architecture and system design";
+    } else if (this.hasKeywords(promptLower, ["review", "code review", "quality", "security issues", "standards", "best practices"])) {
+      recommendedKey = "reviewer";
+      reason = "Comprehensive code review and quality assurance framework";
+    } else if (this.hasKeywords(promptLower, ["iterative", "testing", "development cycle", "feedback", "refactor"])) {
+      recommendedKey = "boomerang";
+      reason = "Iterative development approach with continuous improvement cycles";
+    } else if (this.hasKeywords(promptLower, ["devops", "ci/cd", "deployment", "infrastructure", "docker", "kubernetes"])) {
+      recommendedKey = "devops";
+      reason = "DevOps and infrastructure automation approach";
+    } else if (this.hasKeywords(promptLower, ["code", "programming", "technical", "implement", "function", "api", "database"])) {
+      recommendedKey = "boomerang";
+      reason = "Iterative development approach perfect for complex coding tasks";
     } else if (this.hasKeywords(promptLower, ["math", "proof", "equation", "theorem", "formula"])) {
       recommendedKey = "math";
       reason = "Specialized approach for mathematical and formal reasoning";
@@ -40,7 +52,7 @@ export class PromptRefiner {
 
     const strategy = this.strategyManager.getStrategy(recommendedKey);
     
-    // Determine alternative
+    // Determine alternative with new strategies
     const alternatives: Record<string, string> = {
       "star": "verse",
       "verse": "physics", 
@@ -51,7 +63,11 @@ export class PromptRefiner {
       "bolism": "touille",
       "arpe": "math",
       "phor": "morphosis",
-      "touille": "done"
+      "touille": "done",
+      "architect": "devops",
+      "boomerang": "reviewer",
+      "reviewer": "boomerang",
+      "devops": "architect"
     };
     
     const alternativeKey = alternatives[recommendedKey] || "star";
@@ -132,10 +148,40 @@ export class PromptRefiner {
   private scoreStrategyFit(prompt: string, strategy: any): StrategyScore {
     const promptLower = prompt.toLowerCase();
     const descriptionLower = strategy.description.toLowerCase();
+    const strategyKey = strategy.key;
     
     let suitability = 50; // Base score
     let complexity = 50;
     const strengths: string[] = [];
+    
+    // Enhanced scoring for code-focused strategies
+    if (strategyKey === "architect" || descriptionLower.includes("architecture")) {
+      if (this.hasKeywords(promptLower, ["architecture", "system design", "microservices", "scalability", "design"])) {
+        suitability += 35;
+        strengths.push("architecture specialization");
+      }
+    }
+    
+    if (strategyKey === "boomerang" || descriptionLower.includes("iterative")) {
+      if (this.hasKeywords(promptLower, ["testing", "refactor", "iterative", "development", "api", "build"])) {
+        suitability += 30;
+        strengths.push("iterative development");
+      }
+    }
+    
+    if (strategyKey === "reviewer" || descriptionLower.includes("review")) {
+      if (this.hasKeywords(promptLower, ["review", "code review", "quality", "security", "standards"])) {
+        suitability += 35;
+        strengths.push("code review expertise");
+      }
+    }
+    
+    if (strategyKey === "devops" || descriptionLower.includes("devops")) {
+      if (this.hasKeywords(promptLower, ["devops", "ci/cd", "pipeline", "deployment", "infrastructure", "docker"])) {
+        suitability += 35;
+        strengths.push("devops specialization");
+      }
+    }
     
     // Check for keywords that match strategy strengths
     if (descriptionLower.includes("creative") || descriptionLower.includes("story")) {
