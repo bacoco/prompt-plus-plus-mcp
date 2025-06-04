@@ -102,14 +102,9 @@ prompt-plus-plus-mcp
 
 ## 🔧 Setup Instructions
 
-### **Claude Desktop**
+### **Claude Desktop** (Recommended - No Installation Needed)
 
-1. **Install globally:**
-```bash
-npm install -g prompt-plus-plus-mcp
-```
-
-2. **Add to Claude Desktop config:**
+1. **Add to Claude Desktop config:**
    - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
    - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
    - **Linux**: `~/.config/Claude/claude_desktop_config.json`
@@ -118,27 +113,35 @@ npm install -g prompt-plus-plus-mcp
 {
   "mcpServers": {
     "prompt-plus-plus": {
-      "command": "prompt-plus-plus-mcp",
-      "args": [],
+      "command": "npx",
+      "args": ["prompt-plus-plus-mcp"],
       "env": {}
     }
   }
 }
 ```
 
-3. **Restart Claude Desktop**
+2. **Restart Claude Desktop** ✅
+
+**That's it!** `npx` automatically downloads and runs the latest version.
 
 ### **Claude Code**
 
 ```bash
-# Install globally first
+# No installation needed - npx handles it
+claude mcp add prompt-plus-plus --scope user -- npx prompt-plus-plus-mcp
+
+# Verify
+claude mcp list
+```
+
+### **Alternative: Global Installation**
+
+If you prefer global installation:
+```bash
 npm install -g prompt-plus-plus-mcp
 
-# Add to Claude Code
-claude mcp add prompt-plus-plus --scope user -- prompt-plus-plus-mcp
-
-# Verify installation
-claude mcp list
+# Then use "prompt-plus-plus-mcp" instead of "npx prompt-plus-plus-mcp"
 ```
 
 ## 🎯 Two-Step Workflow Usage

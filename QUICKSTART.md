@@ -2,11 +2,9 @@
 
 Get up and running with Prompt++ MCP server in 2 minutes!
 
-## ⚡ Installation
+## ⚡ No Installation Needed!
 
-```bash
-npm install -g prompt-plus-plus-mcp
-```
+Just configure and use - `npx` handles everything automatically!
 
 ## 🔧 Setup
 
@@ -21,8 +19,8 @@ npm install -g prompt-plus-plus-mcp
 {
   "mcpServers": {
     "prompt-plus-plus": {
-      "command": "prompt-plus-plus-mcp",
-      "args": [],
+      "command": "npx",
+      "args": ["prompt-plus-plus-mcp"],
       "env": {}
     }
   }
@@ -33,7 +31,7 @@ npm install -g prompt-plus-plus-mcp
 
 ### Claude Code
 ```bash
-claude mcp add prompt-plus-plus --scope user -- prompt-plus-plus-mcp
+claude mcp add prompt-plus-plus --scope user -- npx prompt-plus-plus-mcp
 ```
 
 ## 🎯 Usage
