@@ -1,7 +1,0 @@
-transformers 
-torch
-gradio
-httpx==0.24.1
-accelerate>=0.26.0
-tenacity
-pydantic

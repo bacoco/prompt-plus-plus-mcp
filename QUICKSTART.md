@@ -1,65 +1,69 @@
-# Quick Start Guide
+# 🚀 Quick Start Guide
 
-## 1. Install Dependencies
+Get up and running with Prompt++ MCP server in 2 minutes!
 
-```bash
-pip install mcp pydantic
-```
-
-## 2. Test the Server Locally
+## ⚡ Installation
 
 ```bash
-python test_server.py
+npm install -g prompt-plus-plus-mcp
 ```
 
-## 3. Configure with Cursor
+## 🔧 Setup
 
-Add to your Cursor settings (usually in `~/.cursor/settings.json`):
+### Claude Desktop
+1. **Edit config file:**
+   - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+   - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+   - **Linux**: `~/.config/Claude/claude_desktop_config.json`
 
+2. **Add this configuration:**
 ```json
 {
   "mcpServers": {
-    "prompt-plus": {
-      "command": "python",
-      "args": ["-m", "src.server"],
-      "cwd": "/Users/loic/prompt-plus-plus-mcp"
+    "prompt-plus-plus": {
+      "command": "prompt-plus-plus-mcp",
+      "args": [],
+      "env": {}
     }
   }
 }
 ```
 
-## 4. Use in Cursor
+3. **Restart Claude Desktop** ✅
 
-After configuration, you can use commands like:
+### Claude Code
+```bash
+claude mcp add prompt-plus-plus --scope user -- prompt-plus-plus-mcp
+```
 
-- `Use the refine_prompt tool with prompt: "your prompt here" and strategy: "star"`
-- `Use the auto_select_strategy tool with prompt: "your prompt here"`
-- `Use the list_strategies tool`
-- `Use the compare_strategies tool with prompt: "your prompt" and strategies: ["star", "verse", "physics"]`
+## 🎯 Usage
 
-## 5. Process Results
+### Two-Step Refinement (Recommended)
+1. **Use `prepare_refinement` prompt**
+   - Input: "Write a Python function to calculate fibonacci"
+   - Output: Metaprompt execution instructions
 
-When you get a response with `instruction_for_cursor`, copy it to a new Cursor chat and ask Cursor to process it. The response will include:
+2. **Execute the metaprompt in Claude**
 
-- `initial_prompt_evaluation`: Analysis of your original prompt
-- `refined_prompt`: The improved version
-- `explanation_of_refinements`: What was changed and why
+3. **Use `execute_refinement` prompt**
+   - Input: The metaprompt results + original prompt
+   - Output: Final polished prompt ready to use!
 
-## Troubleshooting
+### Quick One-Step
+- **Use `auto_refine` prompt**
+  - Input: Your prompt
+  - Output: Directly refined prompt
 
-If the server doesn't appear in Cursor:
-1. Restart Cursor
-2. Check the path in settings is correct
-3. Ensure Python is in your PATH
-4. Check for errors by running `python -m src.server` directly
+## ✨ Available Prompts
+- `prepare_refinement` + `execute_refinement` (two-step)
+- `auto_refine` (one-step)
+- `refine_with_star` (comprehensive)
+- `refine_with_verse` (technical)
+- `refine_with_math` (mathematical)
+- `compare_refinements` (compare strategies)
+- `list_strategies` (see all options)
 
-## Available Strategies
+## 🎉 You're Ready!
+Your prompts will now be enhanced automatically! 
 
-- **star**: Best for complex, creative tasks
-- **morphosis**: Good for simple, quick refinements
-- **verse**: Excellent for technical prompts
-- **physics**: Balanced approach for analysis
-- **math**: Specialized for mathematical content
-- And 5 more strategies!
-
-Use `list_strategies` to see all available options.
+Need help? Check the [full README](README.md) for detailed documentation.

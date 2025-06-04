@@ -1,1 +1,0 @@
-# Prompt++ MCP Server Package

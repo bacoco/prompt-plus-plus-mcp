@@ -6,7 +6,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Running the MCP Server
 
-#### TypeScript/Node.js Version (Recommended)
 ```bash
 # Development mode
 npm run dev
@@ -14,18 +13,14 @@ npm run dev
 # Production mode
 npm run build
 npm start
-```
 
-#### Python Version (Legacy)
-```bash
-# Activate virtual environment first
-source mcp_env/bin/activate
-python -m src.server
+# Global installation
+npm install -g prompt-plus-plus-mcp
+prompt-plus-plus-mcp
 ```
 
 ### Testing
 
-#### TypeScript/Node.js Version
 ```bash
 # Install dependencies
 npm install
@@ -35,18 +30,6 @@ npm run build
 
 # Run in development mode to test
 npm run dev
-```
-
-#### Python Version (Legacy)
-```bash
-# Install dependencies first
-pip install -r requirements.txt
-
-# Test the server functionality locally
-python test_server.py
-
-# Test metaprompt loading
-python test_metaprompts.py
 ```
 
 ## Architecture: Closed-Loop Meta-Prompting
@@ -61,7 +44,6 @@ This MCP server enables **Claude Code to self-enhance prompts** through a closed
 
 ### Core Components
 
-#### TypeScript/Node.js Implementation (Recommended)
 1. **Strategy Manager (`src/strategy-manager.ts`)**
    - Loads metaprompt templates from JSON files
    - Manages 10 different enhancement strategies
@@ -76,11 +58,6 @@ This MCP server enables **Claude Code to self-enhance prompts** through a closed
    - Exposes MCP prompts for each strategy
    - Implements two-step refinement workflow
    - Built with official MCP TypeScript SDK
-
-#### Python Implementation (Legacy)
-1. **Strategy Manager (`src/core/strategy_manager.py`)**
-2. **Prompt Refiner (`src/core/prompt_refiner.py`)**  
-3. **MCP Server (`src/server.py`)**
 
 ## Available MCP Prompts
 
@@ -132,13 +109,13 @@ When Claude Code uses the new two-step workflow:
 
 ## Workflow Benefits
 
-### Original One-Step Workflow
+### One-Step Workflow
 - **No Manual Steps**: Everything automated within Claude
 - **Context Preservation**: Full conversation context maintained
 - **Strategy Intelligence**: Automatic selection based on prompt type
 - **Iterative Enhancement**: Can refine multiple times with different strategies
 
-### New Two-Step Workflow
+### Two-Step Workflow (Recommended)
 - **Explicit Control**: Claude Code has explicit control over each step
 - **Transparent Process**: Clear visibility into strategy selection and metaprompt execution
 - **Flexible Execution**: Can inspect metaprompt before execution or modify approach

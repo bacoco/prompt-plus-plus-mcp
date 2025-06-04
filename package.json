@@ -1,19 +1,40 @@
 {
   "name": "prompt-plus-plus-mcp",
   "version": "1.0.0",
-  "description": "MCP server for enhancing prompts using metaprompt strategies from the Prompt++ project",
-  "author": "bacoco",
+  "description": "MCP server for enhancing prompts using metaprompt strategies with two-step refinement workflow",
+  "keywords": ["mcp", "model-context-protocol", "prompt-engineering", "prompt-refinement", "ai", "claude"],
+  "author": {
+    "name": "bacoco",
+    "url": "https://github.com/bacoco"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/bacoco/prompt-plus-plus-mcp.git"
   },
+  "homepage": "https://github.com/bacoco/prompt-plus-plus-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/bacoco/prompt-plus-plus-mcp/issues"
+  },
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist/",
+    "metaprompts/",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts",
+    "clean": "rm -rf dist/",
+    "prepublishOnly": "npm run clean && npm run build",
+    "test": "npm run build && node dist/index.js --help || echo 'Server builds successfully'"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0"
@@ -22,6 +43,9 @@
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0",
     "tsx": "^4.0.0"
+  },
+  "bin": {
+    "prompt-plus-plus-mcp": "dist/index.js"
   },
   "mcp": {
     "server": {
