@@ -446,15 +446,67 @@ IMPROVEMENTS SUMMARY:
   }
 }
 
+// Debug: Add immediate logging
+console.error('🔥 SCRIPT STARTED - prompt-plus-plus-mcp');
+console.error('🔥 Node version:', process.version);
+console.error('🔥 Process argv:', process.argv);
+console.error('🔥 Working directory:', process.cwd());
+
 // Run the server
 async function main() {
-  const server = new PromptPlusMCPServer();
-  await server.run();
+  try {
+    console.error('🚀 Starting Prompt++ MCP Server...');
+    console.error('🔍 About to create PromptPlusMCPServer instance...');
+    
+    const server = new PromptPlusMCPServer();
+    console.error('📡 Server instance created, connecting to transport...');
+    
+    await server.run();
+    console.error('✅ Server running successfully');
+  } catch (error) {
+    console.error('❌ Server startup error:', error);
+    console.error('❌ Error name:', error instanceof Error ? error.name : 'Unknown');
+    console.error('❌ Error message:', error instanceof Error ? error.message : String(error));
+    console.error('❌ Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
+    process.exit(1);
+  }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Global error handlers
+process.on('uncaughtException', (error) => {
+  console.error('💥 Uncaught exception:', error);
+  console.error('💥 Stack:', error.stack);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('💥 Unhandled rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
+// Check if this is the main module
+console.error('🔥 Checking if main module...');
+console.error('🔥 import.meta.url:', import.meta.url);
+console.error('🔥 process.argv[1]:', process.argv[1]);
+
+// More flexible main module detection
+const isMainModule = import.meta.url === `file://${process.argv[1]}` || 
+                     process.argv[1].includes('prompt-plus-plus-mcp') ||
+                     import.meta.url.includes('prompt-plus-plus-mcp');
+
+console.error('🔥 isMainModule:', isMainModule);
+
+if (isMainModule) {
+  console.error('🔥 Running as main module');
   main().catch((error) => {
-    console.error('Server error:', error);
+    console.error('💥 Main function error:', error);
+    process.exit(1);
+  });
+} else {
+  console.error('🔥 NOT running as main module - forcing main anyway');
+  // Force run as main since this is clearly the MCP server
+  main().catch((error) => {
+    console.error('💥 Main function error:', error);
     process.exit(1);
   });
 }

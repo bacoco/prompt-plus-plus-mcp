@@ -7,24 +7,35 @@ export class StrategyManager {
   private strategiesDir: string;
 
   constructor(strategiesDir?: string) {
-    if (!strategiesDir) {
-      // Find project root by looking for package.json
-      let currentPath = resolve(import.meta.url.replace('file://', ''));
-      while (currentPath !== '/') {
-        const parentPath = resolve(currentPath, '..');
-        if (readdirSync(parentPath).includes('package.json')) {
-          strategiesDir = join(parentPath, 'metaprompts');
-          break;
-        }
-        currentPath = parentPath;
-      }
+    try {
       if (!strategiesDir) {
-        strategiesDir = 'metaprompts';
+        // Find project root by looking for package.json
+        let currentPath = resolve(import.meta.url.replace('file://', ''));
+        while (currentPath !== '/') {
+          const parentPath = resolve(currentPath, '..');
+          try {
+            if (readdirSync(parentPath).includes('package.json')) {
+              strategiesDir = join(parentPath, 'metaprompts');
+              break;
+            }
+          } catch (err) {
+            console.error(`Error reading directory ${parentPath}:`, err);
+          }
+          currentPath = parentPath;
+        }
+        if (!strategiesDir) {
+          strategiesDir = 'metaprompts';
+        }
       }
+      
+      this.strategiesDir = strategiesDir;
+      console.error(`🔍 Loading strategies from: ${this.strategiesDir}`);
+      this.loadStrategies();
+      console.error(`✅ Loaded ${this.strategies.size} strategies`);
+    } catch (error) {
+      console.error('❌ StrategyManager constructor error:', error);
+      throw error;
     }
-    
-    this.strategiesDir = strategiesDir;
-    this.loadStrategies();
   }
 
   private loadStrategies(): void {
