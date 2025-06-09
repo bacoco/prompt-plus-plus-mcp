@@ -80,6 +80,11 @@ export class PromptPlusMCPServer {
               description: 'Strategy source: "all" (default), "built-in", or "custom"',
               required: false,
             },
+            {
+              name: 'collection',
+              description: 'Use strategies from a specific collection',
+              required: false,
+            },
           ],
         },
         {
@@ -248,6 +253,45 @@ export class PromptPlusMCPServer {
               properties: {},
             },
           },
+          {
+            name: 'list_collections',
+            description: 'List all strategy collections',
+            inputSchema: {
+              type: 'object',
+              properties: {},
+            },
+          },
+          {
+            name: 'manage_collection',
+            description: 'Create, update, or delete strategy collections',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                action: {
+                  type: 'string',
+                  enum: ['create', 'delete', 'add_strategy', 'remove_strategy', 'update'],
+                  description: 'Action to perform',
+                },
+                collection: {
+                  type: 'string',
+                  description: 'Collection key/identifier',
+                },
+                name: {
+                  type: 'string',
+                  description: 'Collection display name (for create/update)',
+                },
+                description: {
+                  type: 'string',
+                  description: 'Collection description (for create/update)',
+                },
+                strategy: {
+                  type: 'string',
+                  description: 'Strategy key (for add/remove)',
+                },
+              },
+              required: ['action', 'collection'],
+            },
+          },
         ],
       };
     });
@@ -273,6 +317,10 @@ export class PromptPlusMCPServer {
           return this.handleHealthCheck();
         } else if (name === 'list_custom_strategies') {
           return this.handleListCustomStrategies();
+        } else if (name === 'list_collections') {
+          return this.handleListCollections();
+        } else if (name === 'manage_collection') {
+          return this.handleManageCollection(args || {});
         } else {
           throw new Error(`Unknown tool: ${name}`);
         }
@@ -451,6 +499,135 @@ export class PromptPlusMCPServer {
         },
       ],
     };
+  }
+
+  private async handleListCollections() {
+    const collectionsManager = this.strategyManager.getCollectionsManager();
+    const collections = collectionsManager.getAllCollections();
+    
+    const collectionsInfo: Record<string, any> = {};
+    
+    for (const [key, collection] of Object.entries(collections)) {
+      const validation = this.strategyManager.validateCollectionStrategies(key);
+      collectionsInfo[key] = {
+        name: collection.name,
+        description: collection.description,
+        strategy_count: collection.strategies.length,
+        valid_strategies: validation.valid.length,
+        invalid_strategies: validation.invalid,
+        created: collection.created,
+        updated: collection.updated,
+        usage_example: `Use auto_refine prompt with user_prompt: "..." and collection: "${key}"`,
+      };
+    }
+    
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: JSON.stringify({
+            total_collections: Object.keys(collections).length,
+            collections: collectionsInfo,
+            usage_hint: 'Use manage_collection tool to create and manage collections',
+            collections_file: 'Stored in ~/.prompt-plus-plus/collections.json',
+          }, null, 2),
+        },
+      ],
+    };
+  }
+
+  private async handleManageCollection(args: Record<string, any>) {
+    const collectionsManager = this.strategyManager.getCollectionsManager();
+    const { action, collection: collectionKey, name, description, strategy } = args;
+    
+    try {
+      let result: any = {};
+      
+      switch (action) {
+        case 'create':
+          if (!name || !description) {
+            throw new Error('Name and description are required for creating a collection');
+          }
+          collectionsManager.createCollection(collectionKey, name, description);
+          result = {
+            action: 'created',
+            collection: collectionKey,
+            message: `Collection '${collectionKey}' created successfully`,
+          };
+          break;
+          
+        case 'delete':
+          collectionsManager.deleteCollection(collectionKey);
+          result = {
+            action: 'deleted',
+            collection: collectionKey,
+            message: `Collection '${collectionKey}' deleted successfully`,
+          };
+          break;
+          
+        case 'add_strategy':
+          if (!strategy) {
+            throw new Error('Strategy parameter is required for adding to collection');
+          }
+          // Validate strategy exists
+          if (!this.strategyManager.getStrategy(strategy)) {
+            throw new Error(`Strategy '${strategy}' not found`);
+          }
+          collectionsManager.addStrategyToCollection(collectionKey, strategy);
+          result = {
+            action: 'strategy_added',
+            collection: collectionKey,
+            strategy: strategy,
+            message: `Strategy '${strategy}' added to collection '${collectionKey}'`,
+          };
+          break;
+          
+        case 'remove_strategy':
+          if (!strategy) {
+            throw new Error('Strategy parameter is required for removing from collection');
+          }
+          collectionsManager.removeStrategyFromCollection(collectionKey, strategy);
+          result = {
+            action: 'strategy_removed',
+            collection: collectionKey,
+            strategy: strategy,
+            message: `Strategy '${strategy}' removed from collection '${collectionKey}'`,
+          };
+          break;
+          
+        case 'update':
+          const updates: any = {};
+          if (name !== undefined) updates.name = name;
+          if (description !== undefined) updates.description = description;
+          collectionsManager.updateCollection(collectionKey, updates);
+          result = {
+            action: 'updated',
+            collection: collectionKey,
+            updates: updates,
+            message: `Collection '${collectionKey}' updated successfully`,
+          };
+          break;
+          
+        default:
+          throw new Error(`Unknown action: ${action}`);
+      }
+      
+      return {
+        content: [
+          {
+            type: 'text' as const,
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      logger.error('Collection management failed', { 
+        action, 
+        collection: collectionKey,
+        error: error instanceof Error ? error.message : String(error) 
+      });
+      throw error;
+    }
   }
 
   async run(): Promise<void> {

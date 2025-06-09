@@ -81,3 +81,15 @@ export interface Logger {
   warn(message: string, meta?: any): void;
   error(message: string, meta?: any): void;
 }
+
+export interface StrategyCollection {
+  name: string;
+  description: string;
+  strategies: string[];
+  created?: string;
+  updated?: string;
+}
+
+export interface CollectionsConfig {
+  collections: Record<string, StrategyCollection>;
+}

@@ -12,6 +12,7 @@ An advanced MCP (Model Context Protocol) server that intelligently enhances prom
 - **🔧 Developer Experience**: Hot reloading, performance metrics, TypeScript throughout
 - **📦 Zero Dependencies**: Completely local execution, no external APIs
 - **🎨 Custom Prompts**: Create and use your own prompt strategies alongside built-in ones
+- **📚 Strategy Collections**: Create personal collections of favorite strategies for quick access
 
 ## 📦 Quick Start
 
@@ -512,6 +513,56 @@ Each strategy is a JSON file with:
 - `best_for`: Ideal use cases
 
 See `custom-prompts-example/` directory for complete examples.
+
+## 📚 Strategy Collections
+
+Create personal collections of your favorite strategies (both built-in and custom) for quick access.
+
+### Creating Collections
+
+```bash
+# Create a new collection
+Use manage_collection tool with action: "create" and collection: "my-favorites" and name: "My Favorite Strategies" and description: "Go-to strategies for daily work"
+
+# Add strategies to collection
+Use manage_collection tool with action: "add_strategy" and collection: "my-favorites" and strategy: "star"
+Use manage_collection tool with action: "add_strategy" and collection: "my-favorites" and strategy: "boomerang"
+```
+
+### Using Collections
+
+```bash
+# List all collections
+Use list_collections tool
+
+# Use a collection with auto-refine
+Use auto_refine prompt with user_prompt: "Create a function to sort data" and collection: "quick-coding"
+```
+
+### Managing Collections
+
+```bash
+# Remove strategy from collection
+Use manage_collection tool with action: "remove_strategy" and collection: "my-favorites" and strategy: "star"
+
+# Update collection details
+Use manage_collection tool with action: "update" and collection: "my-favorites" and description: "Updated description"
+
+# Delete collection
+Use manage_collection tool with action: "delete" and collection: "my-favorites"
+```
+
+### Example Collections
+
+See `collections-example.json` for pre-made collections:
+- **quick-coding**: Rapid development strategies
+- **deep-analysis**: Complex problem solving
+- **creative-work**: Innovation and creative thinking
+- **code-review**: Quality assurance strategies
+- **decision-making**: Strategic planning frameworks
+- **learning**: Educational and understanding strategies
+
+Collections are stored in `~/.prompt-plus-plus/collections.json`
 
 ## 📁 Project Structure
 

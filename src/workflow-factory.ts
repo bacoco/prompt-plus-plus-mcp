@@ -39,24 +39,37 @@ export class AutoRefineHandler extends BaseWorkflowHandler {
   async handle(args: Record<string, any>): Promise<WorkflowResponse> {
     const userPrompt = args.user_prompt || '[User prompt will be inserted here]';
     const source = args.source || 'all'; // 'all', 'built-in', or 'custom'
+    const collection = args.collection; // optional collection name
     
     try {
-      // Get strategies based on source filter
+      // Get strategies based on source filter or collection
       let strategies: Map<string, any>;
       let sourceDescription = '';
       
-      switch (source) {
-        case 'custom':
-          strategies = this.strategyManager.getCustomStrategies();
-          sourceDescription = 'custom user-defined';
-          break;
-        case 'built-in':
-          strategies = this.strategyManager.getBuiltInStrategies();
-          sourceDescription = 'built-in';
-          break;
-        default:
-          strategies = this.strategyManager.getAllStrategies();
-          sourceDescription = 'all available (built-in and custom)';
+      if (collection) {
+        // Use collection strategies
+        strategies = this.strategyManager.getCollectionStrategies(collection);
+        const collectionObj = this.strategyManager.getCollectionsManager().getCollection(collection);
+        sourceDescription = collectionObj ? `collection '${collectionObj.name}'` : `collection '${collection}'`;
+        
+        if (strategies.size === 0) {
+          throw new Error(`Collection '${collection}' not found or has no valid strategies`);
+        }
+      } else {
+        // Use source filter
+        switch (source) {
+          case 'custom':
+            strategies = this.strategyManager.getCustomStrategies();
+            sourceDescription = 'custom user-defined';
+            break;
+          case 'built-in':
+            strategies = this.strategyManager.getBuiltInStrategies();
+            sourceDescription = 'built-in';
+            break;
+          default:
+            strategies = this.strategyManager.getAllStrategies();
+            sourceDescription = 'all available (built-in and custom)';
+        }
       }
       
       // Get all categories metadata (will be filtered based on available strategies)
@@ -66,7 +79,7 @@ export class AutoRefineHandler extends BaseWorkflowHandler {
 
 **User's Prompt:** ${userPrompt}
 
-**Strategy Source Filter:** ${source} (showing ${strategies.size} strategies)
+**Strategy Source:** ${sourceDescription} (showing ${strategies.size} strategies)
 
 **Available Strategy Categories & Options:**
 ${JSON.stringify(allCategoriesMetadata, null, 2)}

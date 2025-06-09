@@ -1,0 +1,46 @@
+{
+  "collections": {
+    "quick-coding": {
+      "name": "Quick Coding Tasks",
+      "description": "My go-to strategies for rapid development and quick fixes",
+      "strategies": ["morphosis", "boomerang", "done"],
+      "created": "2025-01-09T08:00:00Z",
+      "updated": "2025-01-09T08:00:00Z"
+    },
+    "deep-analysis": {
+      "name": "Deep Analysis & Problem Solving",
+      "description": "For complex problems requiring thorough analysis",
+      "strategies": ["star", "devils_advocate", "root_cause_analyzer", "ripple_effect", "evidence_seeker"],
+      "created": "2025-01-09T08:00:00Z", 
+      "updated": "2025-01-09T08:00:00Z"
+    },
+    "creative-work": {
+      "name": "Creative & Innovation",
+      "description": "Strategies for creative thinking and innovation",
+      "strategies": ["synthesis", "quantum", "temporal", "paradox_navigator"],
+      "created": "2025-01-09T08:00:00Z",
+      "updated": "2025-01-09T08:00:00Z"
+    },
+    "code-review": {
+      "name": "Code Review & Quality",
+      "description": "Comprehensive code review and quality assurance",
+      "strategies": ["reviewer", "assumption_detector", "constraint_identifier", "pattern_recognizer"],
+      "created": "2025-01-09T08:00:00Z",
+      "updated": "2025-01-09T08:00:00Z"
+    },
+    "decision-making": {
+      "name": "Decision Making Framework",
+      "description": "For important decisions and strategic planning",
+      "strategies": ["devils_advocate", "tradeoff_tracker", "ripple_effect", "perspective_multiplier", "time_capsule_test"],
+      "created": "2025-01-09T08:00:00Z",
+      "updated": "2025-01-09T08:00:00Z"
+    },
+    "learning": {
+      "name": "Learning & Understanding",
+      "description": "For learning new concepts and deepening understanding",
+      "strategies": ["physics", "math", "metacognitive", "fractal", "context_expander"],
+      "created": "2025-01-09T08:00:00Z",
+      "updated": "2025-01-09T08:00:00Z"
+    }
+  }
+}

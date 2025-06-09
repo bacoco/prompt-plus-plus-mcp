@@ -4,6 +4,7 @@ import { homedir } from 'os';
 import type { StrategyInfo, CategoryMetadata } from './types.js';
 import { Cache } from './cache.js';
 import { logger } from './logger.js';
+import { CollectionsManager } from './collections-manager.js';
 
 export class StrategyManager {
   private strategies: Map<string, StrategyInfo> = new Map();
@@ -13,6 +14,7 @@ export class StrategyManager {
   private cache = new Cache<StrategyInfo | CategoryMetadata>(600000); // 10 minutes
   private fileWatcher?: ReturnType<typeof watch>;
   private customFileWatcher?: ReturnType<typeof watch>;
+  private collectionsManager: CollectionsManager;
 
   constructor(strategiesDir?: string, customPromptsDir?: string) {
     try {
@@ -27,6 +29,9 @@ export class StrategyManager {
       if (this.customPromptsDir && existsSync(this.customPromptsDir)) {
         logger.info(`Loading custom strategies from: ${this.customPromptsDir}`);
       }
+      
+      // Initialize collections manager
+      this.collectionsManager = new CollectionsManager();
       
       this.loadStrategies();
       this.setupFileWatcher();
@@ -376,6 +381,51 @@ export class StrategyManager {
       }
     }
     return Array.from(categories);
+  }
+
+  // Collections management
+  getCollectionsManager(): CollectionsManager {
+    return this.collectionsManager;
+  }
+
+  getCollectionStrategies(collectionKey: string): Map<string, StrategyInfo> {
+    const collection = this.collectionsManager.getCollection(collectionKey);
+    if (!collection) {
+      logger.warn(`Collection '${collectionKey}' not found`);
+      return new Map();
+    }
+
+    const collectionStrategies = new Map<string, StrategyInfo>();
+    for (const strategyKey of collection.strategies) {
+      const strategy = this.strategies.get(strategyKey);
+      if (strategy) {
+        collectionStrategies.set(strategyKey, strategy);
+      } else {
+        logger.warn(`Strategy '${strategyKey}' in collection '${collectionKey}' not found`);
+      }
+    }
+
+    return collectionStrategies;
+  }
+
+  validateCollectionStrategies(collectionKey: string): { valid: string[]; invalid: string[] } {
+    const collection = this.collectionsManager.getCollection(collectionKey);
+    if (!collection) {
+      return { valid: [], invalid: [] };
+    }
+
+    const valid: string[] = [];
+    const invalid: string[] = [];
+
+    for (const strategyKey of collection.strategies) {
+      if (this.strategies.has(strategyKey)) {
+        valid.push(strategyKey);
+      } else {
+        invalid.push(strategyKey);
+      }
+    }
+
+    return { valid, invalid };
   }
 
   // Cache management
