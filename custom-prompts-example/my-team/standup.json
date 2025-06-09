@@ -1,0 +1,14 @@
+{
+  "name": "Daily Standup Format",
+  "description": "Structured format for daily standup updates that keeps meetings focused and efficient",
+  "examples": [
+    "Write my standup update for today",
+    "Summarize yesterday's work and today's plan",
+    "Create standup notes for the team meeting"
+  ],
+  "triggers": ["standup", "daily update", "team meeting", "status update"],
+  "best_for": ["daily standups", "team updates", "progress reports"],
+  "complexity": "Low",
+  "time_investment": "Low",
+  "template": "Transform the following update into our team's standup format:\n\n[Insert initial prompt here]\n\n**Team Standup Format:**\n\n📅 **Yesterday**\n- What did I complete?\n- Key achievements\n- PRs merged/submitted\n\n🎯 **Today**\n- Top 3 priorities\n- Specific tasks/tickets\n- Expected outcomes\n\n🚧 **Blockers**\n- Any impediments?\n- Need help from anyone?\n- Waiting on dependencies?\n\n💡 **Notes**\n- Important updates for the team\n- Upcoming PTO/meetings\n- Discoveries/learnings to share\n\n**Guidelines:**\n- Keep each section to 2-3 bullet points\n- Be specific (include ticket numbers)\n- Focus on impact, not just activity\n- Highlight cross-team dependencies\n- Total update should be under 1 minute to read\n\nFormat the response to be clear, concise, and actionable for the team."
+}

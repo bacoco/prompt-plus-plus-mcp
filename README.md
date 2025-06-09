@@ -11,6 +11,7 @@ An advanced MCP (Model Context Protocol) server that intelligently enhances prom
 - **🛡️ Enterprise Ready**: Health monitoring, structured logging, graceful error handling
 - **🔧 Developer Experience**: Hot reloading, performance metrics, TypeScript throughout
 - **📦 Zero Dependencies**: Completely local execution, no external APIs
+- **🎨 Custom Prompts**: Create and use your own prompt strategies alongside built-in ones
 
 ## 📦 Quick Start
 
@@ -466,6 +467,52 @@ Use discover_strategies tool
 Use compare_refinements prompt with user_prompt: "your prompt" and strategies: "star,physics,boomerang"
 ```
 
+## 🎨 Custom Prompts Support
+
+Create your own prompt strategies to extend Prompt++ with domain-specific or team-specific enhancements.
+
+### Setting Up Custom Prompts
+
+1. **Create a custom prompts directory**:
+```bash
+mkdir -p ~/.prompt-plus-plus/custom-prompts
+```
+
+2. **Set environment variable** (optional):
+```bash
+export PROMPT_PLUS_CUSTOM_DIR="/path/to/your/custom-prompts"
+```
+
+3. **Add your custom strategies** (see `custom-prompts-example/` for templates)
+
+### Using Custom Strategies
+
+```bash
+# List all custom strategies
+Use list_custom_strategies tool
+
+# Use a specific custom strategy
+Use refine_with_custom_my-team_code_review prompt with user_prompt: "Review this code"
+
+# Auto-refine using only custom strategies
+Use auto_refine prompt with user_prompt: "..." and source: "custom"
+
+# Auto-refine using only built-in strategies
+Use auto_refine prompt with user_prompt: "..." and source: "built-in"
+```
+
+### Custom Strategy Format
+
+Each strategy is a JSON file with:
+- `name`: Display name
+- `description`: What it does
+- `template`: Metaprompt template with `[Insert initial prompt here]` placeholder
+- `examples`: Usage examples
+- `triggers`: Keywords for auto-selection
+- `best_for`: Ideal use cases
+
+See `custom-prompts-example/` directory for complete examples.
+
 ## 📁 Project Structure
 
 ```
@@ -480,12 +527,15 @@ prompt-plus-plus-mcp/
 │   ├── logger.ts               # Structured logging
 │   ├── schema-validator.ts     # JSON schema validation
 │   └── types.ts                # Comprehensive type definitions
-├── metaprompts/                 # Strategy definitions organized by category
+├── metaprompts/                 # Built-in strategy definitions by category
 │   ├── core_strategies/         # 10 foundational approaches
 │   ├── software_development/    # 4 dev-focused strategies  
 │   ├── advanced_thinking/       # 6 cognitive frameworks
 │   ├── ai_core_principles/      # 13 critical thinking tools
 │   └── vibe_coding_rules/       # 11 AI development patterns
+├── custom-prompts-example/      # Example custom strategies (copy as template)
+│   ├── my-team/                # Team-specific strategies example
+│   └── personal/               # Personal productivity example
 ├── dist/                        # Compiled JavaScript
 ├── IMPROVEMENTS.md              # Implementation history
 └── USER_GUIDE.md               # Comprehensive usage guide

@@ -1,5 +1,6 @@
-import { readFileSync, readdirSync, statSync, watch } from 'fs';
+import { readFileSync, readdirSync, statSync, watch, existsSync } from 'fs';
 import { join, resolve } from 'path';
+import { homedir } from 'os';
 import type { StrategyInfo, CategoryMetadata } from './types.js';
 import { Cache } from './cache.js';
 import { logger } from './logger.js';
@@ -7,23 +8,32 @@ import { logger } from './logger.js';
 export class StrategyManager {
   private strategies: Map<string, StrategyInfo> = new Map();
   private strategiesDir: string;
+  private customPromptsDir?: string;
   private categoryMetadata: Map<string, CategoryMetadata> = new Map();
   private cache = new Cache<StrategyInfo | CategoryMetadata>(600000); // 10 minutes
   private fileWatcher?: ReturnType<typeof watch>;
+  private customFileWatcher?: ReturnType<typeof watch>;
 
-  constructor(strategiesDir?: string) {
+  constructor(strategiesDir?: string, customPromptsDir?: string) {
     try {
       if (!strategiesDir) {
         strategiesDir = this.findStrategiesDirectory();
       }
       
       this.strategiesDir = strategiesDir;
-      logger.info(`Loading strategies from: ${this.strategiesDir}`);
+      this.customPromptsDir = customPromptsDir || this.findCustomPromptsDirectory();
+      
+      logger.info(`Loading built-in strategies from: ${this.strategiesDir}`);
+      if (this.customPromptsDir && existsSync(this.customPromptsDir)) {
+        logger.info(`Loading custom strategies from: ${this.customPromptsDir}`);
+      }
       
       this.loadStrategies();
       this.setupFileWatcher();
       
-      logger.info(`Loaded ${this.strategies.size} strategies across ${this.categoryMetadata.size} categories`);
+      const customCount = Array.from(this.strategies.values()).filter(s => s.source === 'custom').length;
+      const builtInCount = this.strategies.size - customCount;
+      logger.info(`Loaded ${this.strategies.size} strategies (${builtInCount} built-in, ${customCount} custom) across ${this.categoryMetadata.size} categories`);
     } catch (error) {
       logger.error('StrategyManager initialization failed', { error: error instanceof Error ? error.message : String(error) });
       throw new Error(`Failed to initialize StrategyManager: ${error instanceof Error ? error.message : String(error)}`);
@@ -52,18 +62,60 @@ export class StrategyManager {
     }
   }
 
+  private findCustomPromptsDirectory(): string | undefined {
+    // Check environment variable first
+    const envPath = process.env.PROMPT_PLUS_CUSTOM_DIR;
+    if (envPath && existsSync(envPath)) {
+      return envPath;
+    }
+
+    // Check common locations
+    const possiblePaths = [
+      join(homedir(), '.prompt-plus-plus', 'custom-prompts'),
+      join(homedir(), '.config', 'prompt-plus-plus', 'custom-prompts'),
+      join(process.cwd(), 'custom-prompts'),
+      './custom-prompts'
+    ];
+
+    for (const path of possiblePaths) {
+      if (existsSync(path)) {
+        logger.info(`Found custom prompts directory at: ${path}`);
+        return path;
+      }
+    }
+
+    logger.debug('No custom prompts directory found');
+    return undefined;
+  }
+
   private setupFileWatcher(): void {
     try {
       this.fileWatcher = watch(this.strategiesDir, { recursive: true }, (eventType, filename) => {
         if (filename && filename.endsWith('.json')) {
-          logger.info(`Strategy file changed: ${filename}, reloading...`);
+          logger.info(`Built-in strategy file changed: ${filename}, reloading...`);
           this.cache.clear();
           this.loadStrategies();
         }
       });
-      logger.debug('File watcher setup complete');
+      logger.debug('Built-in file watcher setup complete');
     } catch (error) {
-      logger.warn('Could not setup file watcher', { error: error instanceof Error ? error.message : String(error) });
+      logger.warn('Could not setup built-in file watcher', { error: error instanceof Error ? error.message : String(error) });
+    }
+
+    // Setup custom prompts watcher if directory exists
+    if (this.customPromptsDir && existsSync(this.customPromptsDir)) {
+      try {
+        this.customFileWatcher = watch(this.customPromptsDir, { recursive: true }, (eventType, filename) => {
+          if (filename && filename.endsWith('.json')) {
+            logger.info(`Custom strategy file changed: ${filename}, reloading...`);
+            this.cache.clear();
+            this.loadStrategies();
+          }
+        });
+        logger.debug('Custom file watcher setup complete');
+      } catch (error) {
+        logger.warn('Could not setup custom file watcher', { error: error instanceof Error ? error.message : String(error) });
+      }
     }
   }
 
@@ -73,19 +125,25 @@ export class StrategyManager {
       this.strategies.clear();
       this.categoryMetadata.clear();
       
-      this.loadStrategiesFromDirectory(this.strategiesDir);
+      // Load built-in strategies
+      this.loadStrategiesFromDirectory(this.strategiesDir, 'built-in');
+      
+      // Load custom strategies if directory exists
+      if (this.customPromptsDir && existsSync(this.customPromptsDir)) {
+        this.loadStrategiesFromDirectory(this.customPromptsDir, 'custom');
+      }
       
       if (this.strategies.size === 0) {
         logger.warn('No strategies were loaded');
       }
     } catch (error) {
-      const errorMessage = `Failed to load strategies from ${this.strategiesDir}: ${error instanceof Error ? error.message : String(error)}`;
+      const errorMessage = `Failed to load strategies: ${error instanceof Error ? error.message : String(error)}`;
       logger.error(errorMessage);
       throw new Error(errorMessage);
     }
   }
 
-  private loadStrategiesFromDirectory(dirPath: string): void {
+  private loadStrategiesFromDirectory(dirPath: string, source: 'built-in' | 'custom' = 'built-in'): void {
     try {
       const files = readdirSync(dirPath);
       
@@ -97,9 +155,9 @@ export class StrategyManager {
           
           if (stat.isDirectory()) {
             // Recursively load from subdirectories
-            this.loadStrategiesFromDirectory(filePath);
+            this.loadStrategiesFromDirectory(filePath, source);
           } else if (file.endsWith('.json')) {
-            this.loadJsonFile(filePath, file, dirPath);
+            this.loadJsonFile(filePath, file, dirPath, source);
           }
         } catch (error) {
           logger.warn(`Could not process file ${filePath}`, { error: error instanceof Error ? error.message : String(error) });
@@ -112,7 +170,7 @@ export class StrategyManager {
     }
   }
 
-  private loadJsonFile(filePath: string, file: string, dirPath: string): void {
+  private loadJsonFile(filePath: string, file: string, dirPath: string, source: 'built-in' | 'custom' = 'built-in'): void {
     try {
       // Check cache first
       const cacheKey = `file:${filePath}`;
@@ -135,16 +193,16 @@ export class StrategyManager {
       }
       
       if (file === '_metadata.json') {
-        this.loadCategoryMetadata(data as CategoryMetadata, dirPath);
+        this.loadCategoryMetadata(data as CategoryMetadata, dirPath, source);
       } else {
-        this.loadStrategy(data, file);
+        this.loadStrategy(data, file, dirPath, source);
       }
     } catch (error) {
       logger.error(`Failed to load JSON file ${filePath}`, { error: error instanceof Error ? error.message : String(error) });
     }
   }
 
-  private loadCategoryMetadata(data: CategoryMetadata, dirPath: string): void {
+  private loadCategoryMetadata(data: CategoryMetadata, dirPath: string, source: 'built-in' | 'custom' = 'built-in'): void {
     try {
       const categoryName = dirPath.split('/').pop() || 'unknown';
       
@@ -161,18 +219,22 @@ export class StrategyManager {
     }
   }
 
-  private loadStrategy(data: any, file: string): void {
+  private loadStrategy(data: any, file: string, dirPath: string, source: 'built-in' | 'custom' = 'built-in'): void {
     try {
       const key = file.replace('.json', '');
       
+      // For custom strategies, prefix with category to avoid conflicts
+      const categoryName = dirPath.split('/').pop() || 'unknown';
+      const strategyKey = source === 'custom' ? `custom_${categoryName}_${key}` : key;
+      
       // Validate required fields
       if (!data.name || !data.template) {
-        logger.warn(`Invalid strategy ${key}: missing required fields (name, template)`);
+        logger.warn(`Invalid strategy ${strategyKey}: missing required fields (name, template)`);
         return;
       }
       
       const strategy: StrategyInfo = {
-        key,
+        key: strategyKey,
         name: data.name,
         description: data.description || '',
         examples: Array.isArray(data.examples) ? data.examples : [],
@@ -180,11 +242,13 @@ export class StrategyManager {
         complexity: data.complexity,
         timeInvestment: data.time_investment,
         triggers: Array.isArray(data.triggers) ? data.triggers : undefined,
-        bestFor: Array.isArray(data.best_for) ? data.best_for : undefined
+        bestFor: Array.isArray(data.best_for) ? data.best_for : undefined,
+        source,
+        customCategory: source === 'custom' ? categoryName : undefined
       };
       
-      this.strategies.set(key, strategy);
-      logger.debug(`Loaded strategy: ${key}`);
+      this.strategies.set(strategyKey, strategy);
+      logger.debug(`Loaded ${source} strategy: ${strategyKey}`);
     } catch (error) {
       logger.error(`Failed to load strategy from ${file}`, { error: error instanceof Error ? error.message : String(error) });
     }
@@ -269,6 +333,51 @@ export class StrategyManager {
     return Array.from(this.categoryMetadata.keys());
   }
 
+  // Custom prompts specific methods
+  getCustomStrategies(): Map<string, StrategyInfo> {
+    const customStrategies = new Map<string, StrategyInfo>();
+    for (const [key, strategy] of this.strategies) {
+      if (strategy.source === 'custom') {
+        customStrategies.set(key, strategy);
+      }
+    }
+    return customStrategies;
+  }
+
+  getBuiltInStrategies(): Map<string, StrategyInfo> {
+    const builtInStrategies = new Map<string, StrategyInfo>();
+    for (const [key, strategy] of this.strategies) {
+      if (strategy.source !== 'custom') {
+        builtInStrategies.set(key, strategy);
+      }
+    }
+    return builtInStrategies;
+  }
+
+  getStrategiesBySource(source: 'built-in' | 'custom' | 'all' = 'all'): Map<string, StrategyInfo> {
+    if (source === 'all') {
+      return this.getAllStrategies();
+    }
+    
+    const filteredStrategies = new Map<string, StrategyInfo>();
+    for (const [key, strategy] of this.strategies) {
+      if (strategy.source === source) {
+        filteredStrategies.set(key, strategy);
+      }
+    }
+    return filteredStrategies;
+  }
+
+  getCustomCategories(): string[] {
+    const categories = new Set<string>();
+    for (const strategy of this.strategies.values()) {
+      if (strategy.source === 'custom' && strategy.customCategory) {
+        categories.add(strategy.customCategory);
+      }
+    }
+    return Array.from(categories);
+  }
+
   // Cache management
   clearCache(): void {
     this.cache.clear();
@@ -286,7 +395,11 @@ export class StrategyManager {
     try {
       if (this.fileWatcher) {
         this.fileWatcher.close();
-        logger.debug('File watcher closed');
+        logger.debug('Built-in file watcher closed');
+      }
+      if (this.customFileWatcher) {
+        this.customFileWatcher.close();
+        logger.debug('Custom file watcher closed');
       }
       this.cache.clear();
       this.strategies.clear();

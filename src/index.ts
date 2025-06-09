@@ -34,7 +34,10 @@ export class PromptPlusMCPServer {
       }
     );
 
-    this.strategyManager = new StrategyManager();
+    // Get custom prompts directory from environment or use default
+    const customPromptsDir = process.env.PROMPT_PLUS_CUSTOM_DIR;
+    
+    this.strategyManager = new StrategyManager(undefined, customPromptsDir);
     this.promptRefiner = new PromptRefiner(this.strategyManager);
     this.workflowFactory = new WorkflowFactory(this.strategyManager, this.promptRefiner);
     this.setupHandlers();
@@ -47,9 +50,10 @@ export class PromptPlusMCPServer {
       
       // Strategy-specific prompts
       for (const [key, strategy] of this.strategyManager.getAllStrategies()) {
+        const prefix = strategy.source === 'custom' ? '[CUSTOM] ' : '';
         prompts.push({
           name: `refine_with_${key}`,
-          description: `Refine a prompt using ${strategy.name}: ${strategy.description}`,
+          description: `${prefix}Refine a prompt using ${strategy.name}: ${strategy.description}`,
           arguments: [
             {
               name: 'user_prompt',
@@ -70,6 +74,11 @@ export class PromptPlusMCPServer {
               name: 'user_prompt',
               description: 'The prompt to refine',
               required: true,
+            },
+            {
+              name: 'source',
+              description: 'Strategy source: "all" (default), "built-in", or "custom"',
+              required: false,
             },
           ],
         },
@@ -231,6 +240,14 @@ export class PromptPlusMCPServer {
               properties: {},
             },
           },
+          {
+            name: 'list_custom_strategies',
+            description: 'List all custom user-defined strategies with their categories',
+            inputSchema: {
+              type: 'object',
+              properties: {},
+            },
+          },
         ],
       };
     });
@@ -254,6 +271,8 @@ export class PromptPlusMCPServer {
           return this.handleGetPerformanceMetrics();
         } else if (name === 'health_check') {
           return this.handleHealthCheck();
+        } else if (name === 'list_custom_strategies') {
+          return this.handleListCustomStrategies();
         } else {
           throw new Error(`Unknown tool: ${name}`);
         }
@@ -388,6 +407,46 @@ export class PromptPlusMCPServer {
             cache_stats: cacheStats,
             workflows_available: this.workflowFactory.getAvailableWorkflows(),
             timestamp: new Date().toISOString(),
+          }, null, 2),
+        },
+      ],
+    };
+  }
+
+  private async handleListCustomStrategies() {
+    const customStrategies = this.strategyManager.getCustomStrategies();
+    const customCategories = this.strategyManager.getCustomCategories();
+    
+    const strategiesByCategory: Record<string, any[]> = {};
+    
+    // Group custom strategies by category
+    for (const [key, strategy] of customStrategies) {
+      const category = strategy.customCategory || 'uncategorized';
+      if (!strategiesByCategory[category]) {
+        strategiesByCategory[category] = [];
+      }
+      strategiesByCategory[category].push({
+        key: key,
+        name: strategy.name,
+        description: strategy.description,
+        prompt_name: `refine_with_${key}`,
+        complexity: strategy.complexity,
+        timeInvestment: strategy.timeInvestment,
+      });
+    }
+    
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: JSON.stringify({
+            total_custom_strategies: customStrategies.size,
+            custom_categories: customCategories,
+            strategies_by_category: strategiesByCategory,
+            usage_example: customStrategies.size > 0 
+              ? `Use 'refine_with_${Array.from(customStrategies.keys())[0]}' prompt to use your first custom strategy`
+              : 'No custom strategies found. Add JSON files to your custom-prompts directory.',
+            custom_directory_hint: 'Set PROMPT_PLUS_CUSTOM_DIR environment variable or create ~/.prompt-plus-plus/custom-prompts/',
           }, null, 2),
         },
       ],

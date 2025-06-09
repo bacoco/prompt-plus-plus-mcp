@@ -9,6 +9,8 @@ export interface StrategyInfo {
   timeInvestment?: 'Low' | 'Medium' | 'High' | 'Medium-High';
   triggers?: string[];
   bestFor?: string[];
+  source?: 'built-in' | 'custom';
+  customCategory?: string;
 }
 
 export interface AutoSelectionResult {

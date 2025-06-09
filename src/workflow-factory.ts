@@ -38,14 +38,35 @@ export abstract class BaseWorkflowHandler {
 export class AutoRefineHandler extends BaseWorkflowHandler {
   async handle(args: Record<string, any>): Promise<WorkflowResponse> {
     const userPrompt = args.user_prompt || '[User prompt will be inserted here]';
+    const source = args.source || 'all'; // 'all', 'built-in', or 'custom'
     
     try {
-      // Get all strategies organized by category
+      // Get strategies based on source filter
+      let strategies: Map<string, any>;
+      let sourceDescription = '';
+      
+      switch (source) {
+        case 'custom':
+          strategies = this.strategyManager.getCustomStrategies();
+          sourceDescription = 'custom user-defined';
+          break;
+        case 'built-in':
+          strategies = this.strategyManager.getBuiltInStrategies();
+          sourceDescription = 'built-in';
+          break;
+        default:
+          strategies = this.strategyManager.getAllStrategies();
+          sourceDescription = 'all available (built-in and custom)';
+      }
+      
+      // Get all categories metadata (will be filtered based on available strategies)
       const allCategoriesMetadata = this.strategyManager.getAllCategoriesMetadata();
       
-      const responseText = `You are an expert prompt engineer. Your task is to analyze the user's prompt and select the most appropriate strategy from all available options, then apply it.
+      const responseText = `You are an expert prompt engineer. Your task is to analyze the user's prompt and select the most appropriate strategy from ${sourceDescription} strategies, then apply it.
 
 **User's Prompt:** ${userPrompt}
+
+**Strategy Source Filter:** ${source} (showing ${strategies.size} strategies)
 
 **Available Strategy Categories & Options:**
 ${JSON.stringify(allCategoriesMetadata, null, 2)}

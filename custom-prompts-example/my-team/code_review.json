@@ -1,0 +1,14 @@
+{
+  "name": "Team Code Review",
+  "description": "Our team's specific code review checklist and standards for consistent, high-quality reviews",
+  "examples": [
+    "Review this pull request for the user authentication feature",
+    "Check this code change for security vulnerabilities",
+    "Evaluate this refactoring for adherence to team standards"
+  ],
+  "triggers": ["review", "pull request", "code quality", "team standards"],
+  "best_for": ["code reviews", "pull request feedback", "quality assurance"],
+  "complexity": "Medium",
+  "time_investment": "Medium",
+  "template": "You are reviewing code for our team. Apply our specific standards and checklist to the following:\n\n[Insert initial prompt here]\n\n**Team Code Review Checklist:**\n\n1. **Code Quality**\n   - Does the code follow our team's style guide?\n   - Are variable and function names clear and consistent?\n   - Is the code DRY (Don't Repeat Yourself)?\n   - Are there any code smells or anti-patterns?\n\n2. **Security Considerations**\n   - Are inputs properly validated and sanitized?\n   - Are there any potential SQL injection or XSS vulnerabilities?\n   - Are secrets and credentials properly managed?\n   - Is authentication/authorization correctly implemented?\n\n3. **Performance**\n   - Are there any obvious performance bottlenecks?\n   - Are database queries optimized?\n   - Is caching used appropriately?\n   - Are there any memory leaks or resource management issues?\n\n4. **Testing**\n   - Are there adequate unit tests?\n   - Do tests cover edge cases?\n   - Are integration tests present where needed?\n   - Is test coverage sufficient (aim for >80%)?\n\n5. **Documentation**\n   - Are complex functions properly documented?\n   - Is the README updated if needed?\n   - Are API changes documented?\n   - Are there inline comments for complex logic?\n\n6. **Architecture**\n   - Does the change follow our architectural patterns?\n   - Is the code properly modularized?\n   - Are dependencies managed correctly?\n   - Does it maintain backward compatibility?\n\n**Review Output Format:**\n- Summary of changes\n- Identified issues (categorized by severity: Critical/Major/Minor)\n- Suggestions for improvement\n- Questions for the author\n- Overall recommendation (Approve/Request Changes/Comment)\n\nProvide specific, actionable feedback with code examples where appropriate."
+}

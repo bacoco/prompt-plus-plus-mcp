@@ -1,0 +1,28 @@
+{
+  "category": "My Team Custom Strategies",
+  "description": "Custom prompt enhancement strategies specific to our team's workflow and standards",
+  "use_cases": [
+    "Team-specific code review patterns",
+    "Company coding standards",
+    "Internal documentation formats",
+    "Team communication styles"
+  ],
+  "strategies": [
+    {
+      "key": "code_review",
+      "name": "Team Code Review",
+      "description": "Our team's specific code review checklist and standards",
+      "best_for": ["pull requests", "code quality", "team standards"],
+      "complexity": "Medium",
+      "time_investment": "Medium"
+    },
+    {
+      "key": "standup",
+      "name": "Daily Standup Format",
+      "description": "Structured format for daily standup updates",
+      "best_for": ["daily updates", "team communication", "progress tracking"],
+      "complexity": "Low",
+      "time_investment": "Low"
+    }
+  ]
+}

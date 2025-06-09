@@ -1,0 +1,20 @@
+{
+  "category": "Personal Productivity",
+  "description": "Personal prompt strategies for enhanced productivity and communication",
+  "use_cases": [
+    "Email writing",
+    "Meeting preparation",
+    "Personal documentation",
+    "Learning and note-taking"
+  ],
+  "strategies": [
+    {
+      "key": "email_professional",
+      "name": "Professional Email Writer",
+      "description": "Transform ideas into clear, professional emails",
+      "best_for": ["business emails", "client communication", "formal requests"],
+      "complexity": "Low",
+      "time_investment": "Low"
+    }
+  ]
+}

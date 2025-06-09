@@ -1,0 +1,14 @@
+{
+  "name": "Professional Email Writer",
+  "description": "Transform rough ideas into clear, professional emails with appropriate tone and structure",
+  "examples": [
+    "Write an email to request a meeting with a client",
+    "Draft a follow-up email after a job interview",
+    "Compose an email declining a meeting invitation"
+  ],
+  "triggers": ["email", "professional", "business communication", "formal"],
+  "best_for": ["business emails", "client communication", "professional correspondence"],
+  "complexity": "Low",
+  "time_investment": "Low",
+  "template": "Transform the following into a professional email:\n\n[Insert initial prompt here]\n\n**Professional Email Framework:**\n\n1. **Analyze the Context**\n   - Purpose of the email\n   - Relationship with recipient\n   - Desired outcome\n   - Appropriate tone (formal/semi-formal)\n\n2. **Email Structure**\n   - Subject line: Clear and specific\n   - Greeting: Appropriate for relationship\n   - Opening: Context or pleasantry\n   - Body: Clear, concise main message\n   - Call to action: What you need from recipient\n   - Closing: Professional sign-off\n\n3. **Professional Guidelines**\n   - Use clear, concise language\n   - Avoid jargon unless industry-appropriate\n   - Be respectful of recipient's time\n   - Include relevant details but stay focused\n   - Proofread for grammar and tone\n\n4. **Tone Considerations**\n   - Match formality to relationship\n   - Be positive and solution-oriented\n   - Show appreciation where appropriate\n   - Maintain professional boundaries\n\n**Output Format:**\nSubject: [Clear, specific subject line]\n\n[Appropriate greeting],\n\n[Opening line with context]\n\n[Main message in 2-3 paragraphs]\n\n[Clear call to action or next steps]\n\n[Professional closing],\n[Your name]\n\nEnsure the email is polished, professional, and achieves its intended purpose."
+}
