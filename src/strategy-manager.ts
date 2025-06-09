@@ -1,49 +1,87 @@
-import { readFileSync, readdirSync, statSync } from 'fs';
+import { readFileSync, readdirSync, statSync, watch } from 'fs';
 import { join, resolve } from 'path';
-import type { StrategyInfo } from './types.js';
+import type { StrategyInfo, CategoryMetadata } from './types.js';
+import { Cache } from './cache.js';
+import { logger } from './logger.js';
 
 export class StrategyManager {
   private strategies: Map<string, StrategyInfo> = new Map();
   private strategiesDir: string;
-  private categoryMetadata: Map<string, any> = new Map();
+  private categoryMetadata: Map<string, CategoryMetadata> = new Map();
+  private cache = new Cache<StrategyInfo | CategoryMetadata>(600000); // 10 minutes
+  private fileWatcher?: ReturnType<typeof watch>;
 
   constructor(strategiesDir?: string) {
     try {
       if (!strategiesDir) {
-        // Find project root by looking for package.json
-        let currentPath = resolve(import.meta.url.replace('file://', ''));
-        while (currentPath !== '/') {
-          const parentPath = resolve(currentPath, '..');
-          try {
-            if (readdirSync(parentPath).includes('package.json')) {
-              strategiesDir = join(parentPath, 'metaprompts');
-              break;
-            }
-          } catch (err) {
-            console.error(`Error reading directory ${parentPath}:`, err);
-          }
-          currentPath = parentPath;
-        }
-        if (!strategiesDir) {
-          strategiesDir = 'metaprompts';
-        }
+        strategiesDir = this.findStrategiesDirectory();
       }
       
       this.strategiesDir = strategiesDir;
-      console.error(`🔍 Loading strategies from: ${this.strategiesDir}`);
+      logger.info(`Loading strategies from: ${this.strategiesDir}`);
+      
       this.loadStrategies();
-      console.error(`✅ Loaded ${this.strategies.size} strategies`);
+      this.setupFileWatcher();
+      
+      logger.info(`Loaded ${this.strategies.size} strategies across ${this.categoryMetadata.size} categories`);
     } catch (error) {
-      console.error('❌ StrategyManager constructor error:', error);
-      throw error;
+      logger.error('StrategyManager initialization failed', { error: error instanceof Error ? error.message : String(error) });
+      throw new Error(`Failed to initialize StrategyManager: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  private findStrategiesDirectory(): string {
+    try {
+      // Find project root by looking for package.json
+      let currentPath = resolve(import.meta.url.replace('file://', ''));
+      while (currentPath !== '/') {
+        const parentPath = resolve(currentPath, '..');
+        try {
+          if (readdirSync(parentPath).includes('package.json')) {
+            return join(parentPath, 'metaprompts');
+          }
+        } catch (err) {
+          logger.debug(`Could not read directory ${parentPath}`, { error: err });
+        }
+        currentPath = parentPath;
+      }
+      return 'metaprompts';
+    } catch (error) {
+      logger.warn('Could not find project root, using default metaprompts directory');
+      return 'metaprompts';
+    }
+  }
+
+  private setupFileWatcher(): void {
+    try {
+      this.fileWatcher = watch(this.strategiesDir, { recursive: true }, (eventType, filename) => {
+        if (filename && filename.endsWith('.json')) {
+          logger.info(`Strategy file changed: ${filename}, reloading...`);
+          this.cache.clear();
+          this.loadStrategies();
+        }
+      });
+      logger.debug('File watcher setup complete');
+    } catch (error) {
+      logger.warn('Could not setup file watcher', { error: error instanceof Error ? error.message : String(error) });
     }
   }
 
   private loadStrategies(): void {
     try {
+      // Clear existing data
+      this.strategies.clear();
+      this.categoryMetadata.clear();
+      
       this.loadStrategiesFromDirectory(this.strategiesDir);
+      
+      if (this.strategies.size === 0) {
+        logger.warn('No strategies were loaded');
+      }
     } catch (error) {
-      throw new Error(`Strategies directory not found: ${this.strategiesDir}`);
+      const errorMessage = `Failed to load strategies from ${this.strategiesDir}: ${error instanceof Error ? error.message : String(error)}`;
+      logger.error(errorMessage);
+      throw new Error(errorMessage);
     }
   }
 
@@ -53,46 +91,111 @@ export class StrategyManager {
       
       for (const file of files) {
         const filePath = join(dirPath, file);
-        const stat = statSync(filePath);
         
-        if (stat.isDirectory()) {
-          // Recursively load from subdirectories
-          this.loadStrategiesFromDirectory(filePath);
-        } else if (file.endsWith('.json')) {
-          try {
-            const content = readFileSync(filePath, 'utf-8');
-            const data = JSON.parse(content);
-            
-            if (file === '_metadata.json') {
-              // Load category metadata
-              const categoryName = dirPath.split('/').pop() || 'unknown';
-              this.categoryMetadata.set(categoryName, data);
-            } else {
-              // Load strategy
-              const key = file.replace('.json', '');
-              
-              const strategy: StrategyInfo = {
-                key,
-                name: data.name || key,
-                description: data.description || '',
-                examples: data.examples || [],
-                template: data.template || ''
-              };
-              
-              this.strategies.set(key, strategy);
-            }
-          } catch (error) {
-            console.error(`Error loading strategy ${file}:`, error);
+        try {
+          const stat = statSync(filePath);
+          
+          if (stat.isDirectory()) {
+            // Recursively load from subdirectories
+            this.loadStrategiesFromDirectory(filePath);
+          } else if (file.endsWith('.json')) {
+            this.loadJsonFile(filePath, file, dirPath);
           }
+        } catch (error) {
+          logger.warn(`Could not process file ${filePath}`, { error: error instanceof Error ? error.message : String(error) });
         }
       }
     } catch (error) {
-      console.error(`Error reading directory ${dirPath}:`, error);
+      const errorMessage = `Failed to read directory ${dirPath}: ${error instanceof Error ? error.message : String(error)}`;
+      logger.error(errorMessage);
+      throw new Error(errorMessage);
+    }
+  }
+
+  private loadJsonFile(filePath: string, file: string, dirPath: string): void {
+    try {
+      // Check cache first
+      const cacheKey = `file:${filePath}`;
+      let data = this.cache.get(cacheKey);
+      
+      if (!data) {
+        const content = readFileSync(filePath, 'utf-8');
+        if (!content.trim()) {
+          logger.warn(`Empty JSON file: ${filePath}`);
+          return;
+        }
+        
+        try {
+          data = JSON.parse(content);
+          this.cache.set(cacheKey, data as any);
+        } catch (parseError) {
+          logger.error(`Invalid JSON in file ${filePath}`, { error: parseError instanceof Error ? parseError.message : String(parseError) });
+          return;
+        }
+      }
+      
+      if (file === '_metadata.json') {
+        this.loadCategoryMetadata(data as CategoryMetadata, dirPath);
+      } else {
+        this.loadStrategy(data, file);
+      }
+    } catch (error) {
+      logger.error(`Failed to load JSON file ${filePath}`, { error: error instanceof Error ? error.message : String(error) });
+    }
+  }
+
+  private loadCategoryMetadata(data: CategoryMetadata, dirPath: string): void {
+    try {
+      const categoryName = dirPath.split('/').pop() || 'unknown';
+      
+      // Validate required fields
+      if (!data.category || !data.description) {
+        logger.warn(`Invalid category metadata in ${dirPath}: missing required fields`);
+        return;
+      }
+      
+      this.categoryMetadata.set(categoryName, data);
+      logger.debug(`Loaded category metadata: ${categoryName}`);
+    } catch (error) {
+      logger.error(`Failed to load category metadata from ${dirPath}`, { error: error instanceof Error ? error.message : String(error) });
+    }
+  }
+
+  private loadStrategy(data: any, file: string): void {
+    try {
+      const key = file.replace('.json', '');
+      
+      // Validate required fields
+      if (!data.name || !data.template) {
+        logger.warn(`Invalid strategy ${key}: missing required fields (name, template)`);
+        return;
+      }
+      
+      const strategy: StrategyInfo = {
+        key,
+        name: data.name,
+        description: data.description || '',
+        examples: Array.isArray(data.examples) ? data.examples : [],
+        template: data.template,
+        complexity: data.complexity,
+        timeInvestment: data.time_investment,
+        triggers: Array.isArray(data.triggers) ? data.triggers : undefined,
+        bestFor: Array.isArray(data.best_for) ? data.best_for : undefined
+      };
+      
+      this.strategies.set(key, strategy);
+      logger.debug(`Loaded strategy: ${key}`);
+    } catch (error) {
+      logger.error(`Failed to load strategy from ${file}`, { error: error instanceof Error ? error.message : String(error) });
     }
   }
 
   getStrategy(key: string): StrategyInfo | undefined {
-    return this.strategies.get(key);
+    const strategy = this.strategies.get(key);
+    if (!strategy) {
+      logger.debug(`Strategy not found: ${key}`);
+    }
+    return strategy;
   }
 
   getAllStrategies(): Map<string, StrategyInfo> {
@@ -124,12 +227,12 @@ export class StrategyManager {
     return examples;
   }
 
-  getCategoryMetadata(): Map<string, any> {
+  getCategoryMetadata(): Map<string, CategoryMetadata> {
     return new Map(this.categoryMetadata);
   }
 
-  getAllCategoriesMetadata(): Record<string, any> {
-    const result: Record<string, any> = {};
+  getAllCategoriesMetadata(): Record<string, CategoryMetadata> {
+    const result: Record<string, CategoryMetadata> = {};
     for (const [categoryName, metadata] of this.categoryMetadata) {
       result[categoryName] = metadata;
     }
@@ -157,12 +260,54 @@ export class StrategyManager {
         .filter(file => file.endsWith('.json') && file !== '_metadata.json')
         .map(file => file.replace('.json', ''));
     } catch (error) {
-      console.error(`Error reading category directory ${categoryPath}:`, error);
+      logger.error(`Error reading category directory ${categoryPath}`, { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
 
   getCategoryNames(): string[] {
     return Array.from(this.categoryMetadata.keys());
+  }
+
+  // Cache management
+  clearCache(): void {
+    this.cache.clear();
+    logger.info('Strategy cache cleared');
+  }
+
+  getCacheStats(): { size: number; hitRate?: number } {
+    return {
+      size: this.cache.size()
+    };
+  }
+
+  // Cleanup resources
+  destroy(): void {
+    try {
+      if (this.fileWatcher) {
+        this.fileWatcher.close();
+        logger.debug('File watcher closed');
+      }
+      this.cache.clear();
+      this.strategies.clear();
+      this.categoryMetadata.clear();
+      logger.info('StrategyManager destroyed');
+    } catch (error) {
+      logger.error('Error during StrategyManager cleanup', { error: error instanceof Error ? error.message : String(error) });
+    }
+  }
+
+  // Health check
+  isHealthy(): boolean {
+    return this.strategies.size > 0 && this.categoryMetadata.size > 0;
+  }
+
+  getHealthStatus(): { healthy: boolean; strategiesCount: number; categoriesCount: number; cacheSize: number } {
+    return {
+      healthy: this.isHealthy(),
+      strategiesCount: this.strategies.size,
+      categoriesCount: this.categoryMetadata.size,
+      cacheSize: this.cache.size()
+    };
   }
 }
