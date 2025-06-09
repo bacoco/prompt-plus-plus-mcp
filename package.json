@@ -1,14 +1,20 @@
 {
   "name": "prompt-plus-plus-mcp",
-  "version": "2.0.1",
-  "description": "MCP server for prompt enhancement using various metaprompt strategies with intelligent selection and two-step workflow",
+  "version": "3.0.0",
+  "description": "Advanced MCP server with 44+ metaprompt strategies including AI Core Principles, Vibe Coding Rules, and metadata-driven intelligent selection",
   "keywords": [
     "mcp",
     "model-context-protocol",
     "prompt-engineering",
     "prompt-refinement",
     "ai",
-    "claude"
+    "claude",
+    "critical-thinking",
+    "vibe-coding",
+    "tdd",
+    "development-workflow",
+    "decision-making",
+    "metaprompts"
   ],
   "author": {
     "name": "bacoco",
