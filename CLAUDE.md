@@ -147,6 +147,20 @@ When Claude Code uses intelligent strategy discovery:
 6. **MCP Server**: Returns targeted refinement using Devil's Advocate methodology
 7. **Result**: Systematically enhanced prompt with counterarguments and risk analysis
 
+### **NEW: 3-Step Intelligent Workflow (Recommended)**
+The most intelligent and precise workflow with automatic LLM-guided selection:
+
+1. **User**: "Refine my prompt: Create a microservices architecture for an e-commerce platform"
+2. **Claude**: Uses `step1_get_categories` prompt with user's input
+3. **MCP Server**: Returns all strategy categories with descriptions and use cases
+4. **Claude**: Analyzes categories and selects "Software Development" based on the architectural context
+5. **Claude**: Uses `step2_get_strategies` prompt with selected category and user's input
+6. **MCP Server**: Returns all strategies from Software Development category with detailed metadata
+7. **Claude**: Analyzes strategies and selects "architect" for system design focus
+8. **Claude**: Uses `step3_execute_strategy` prompt with selected strategy and user's input
+9. **MCP Server**: Returns the refined prompt using the Architect methodology
+10. **Result**: Precisely targeted architectural prompt with system design considerations
+
 ## Workflow Benefits
 
 ### One-Step Workflow
@@ -155,12 +169,20 @@ When Claude Code uses intelligent strategy discovery:
 - **Strategy Intelligence**: Automatic selection based on prompt type
 - **Iterative Enhancement**: Can refine multiple times with different strategies
 
-### Two-Step Workflow (Recommended)
+### Two-Step Workflow
 - **Explicit Control**: Claude Code has explicit control over each step
 - **Transparent Process**: Clear visibility into strategy selection and metaprompt execution
 - **Flexible Execution**: Can inspect metaprompt before execution or modify approach
 - **Cleaner Output**: Final step produces polished, ready-to-use prompts
 - **Better Error Handling**: Can catch and handle issues at each step independently
+
+### **3-Step Workflow (NEW - RECOMMENDED)**
+- **Maximum Precision**: LLM analyzes and selects at each decision point
+- **Intelligent Category Selection**: Reviews all 5 categories to find best fit
+- **Optimal Strategy Matching**: Examines specific strategies within chosen category
+- **No Manual Selection**: LLM makes informed choices based on prompt analysis
+- **Transparent Decision Making**: Clear reasoning at each step
+- **Best Strategy Fit**: Ensures most appropriate enhancement methodology is applied
 
 ## Adding New Strategies
 

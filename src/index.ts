@@ -11,6 +11,7 @@ import {
 
 import { StrategyManager } from './strategy-manager.js';
 import { PromptRefiner } from './prompt-refiner.js';
+import { readdirSync } from 'fs';
 
 export class PromptPlusMCPServer {
   private server: Server;
@@ -111,6 +112,49 @@ export class PromptPlusMCPServer {
               required: true,
             },
           ],
+        },
+        {
+          name: 'step1_get_categories',
+          description: 'Step 1 of 3: Get all available strategy categories with descriptions for LLM to choose from',
+          arguments: [
+            {
+              name: 'user_prompt',
+              description: 'The prompt that needs refinement (for context)',
+              required: true,
+            },
+          ],
+        },
+        {
+          name: 'step2_get_strategies',
+          description: 'Step 2 of 3: Get all strategies from selected category for LLM to choose the best one',
+          arguments: [
+            {
+              name: 'category_name',
+              description: 'The selected category name',
+              required: true,
+            },
+            {
+              name: 'user_prompt',
+              description: 'The original user prompt (for context)',
+              required: true,
+            },
+          ],
+        },
+        {
+          name: 'step3_execute_strategy',
+          description: 'Step 3 of 3: Execute the selected strategy with the user prompt',
+          arguments: [
+            {
+              name: 'strategy_key',
+              description: 'The selected strategy key',
+              required: true,
+            },
+            {
+              name: 'user_prompt',
+              description: 'The original user prompt to refine',
+              required: true,
+            },
+          ],
         }
       );
 
@@ -132,6 +176,12 @@ export class PromptPlusMCPServer {
         return this.handlePrepareRefinement(userPrompt);
       } else if (name === 'execute_refinement') {
         return this.handleExecuteRefinement(args.metaprompt_results, args.original_prompt || userPrompt);
+      } else if (name === 'step1_get_categories') {
+        return this.handleStep1GetCategories(userPrompt);
+      } else if (name === 'step2_get_strategies') {
+        return this.handleStep2GetStrategies(args.category_name as string, userPrompt);
+      } else if (name === 'step3_execute_strategy') {
+        return this.handleStep3ExecuteStrategy(args.strategy_key as string, userPrompt);
       } else {
         throw new Error(`Unknown prompt: ${name}`);
       }
@@ -467,6 +517,145 @@ IMPROVEMENTS SUMMARY:
             },
             auto_selection: "Use 'auto_refine' for automatic strategy selection based on keyword analysis"
           }, null, 2),
+        },
+      ],
+    };
+  }
+
+  private async handleStep1GetCategories(userPrompt: string) {
+    const categoryMetadata = this.strategyManager.getAllCategoriesMetadata();
+    
+    return {
+      messages: [
+        {
+          role: 'user' as const,
+          content: {
+            type: 'text' as const,
+            text: `STEP 1 of 3: Category Selection for Prompt Refinement
+
+**Your Task:** Analyze the user's prompt and select the most appropriate strategy category.
+
+**User's Prompt:** ${userPrompt}
+
+**Available Categories:**
+${JSON.stringify(categoryMetadata, null, 2)}
+
+**Instructions:**
+1. Analyze the user's prompt to understand its nature, complexity, and requirements
+2. Review each category's description, use_cases, and available strategies
+3. Select the category that best matches the prompt's needs
+4. Return your selection in this exact format:
+
+\`\`\`json
+{
+  "selected_category": "category_name",
+  "reasoning": "Explanation of why this category is best suited for the prompt",
+  "analysis": "Brief analysis of the prompt's characteristics that led to this choice"
+}
+\`\`\`
+
+**Remember:** Choose the category that will provide the most relevant and effective strategies for this specific prompt.`,
+          },
+        },
+      ],
+    };
+  }
+
+  private async handleStep2GetStrategies(categoryName: string, userPrompt: string) {
+    const categoryStrategies = this.strategyManager.getCategoryStrategies(categoryName);
+    const categoryMetadata = this.strategyManager.getAllCategoriesMetadata()[categoryName];
+    
+    if (!categoryMetadata) {
+      throw new Error(`Category '${categoryName}' not found`);
+    }
+
+    return {
+      messages: [
+        {
+          role: 'user' as const,
+          content: {
+            type: 'text' as const,
+            text: `STEP 2 of 3: Strategy Selection from ${categoryMetadata.category}
+
+**Your Task:** Select the best strategy from the ${categoryName} category for refining this prompt.
+
+**User's Prompt:** ${userPrompt}
+
+**Category Description:** ${categoryMetadata.description}
+
+**Available Strategies in ${categoryMetadata.category}:**
+${JSON.stringify(categoryMetadata.strategies, null, 2)}
+
+**Instructions:**
+1. Analyze how each strategy's "best_for" criteria matches the user's prompt
+2. Consider the complexity level and time investment appropriate for this task
+3. Look at trigger keywords that might apply to the prompt
+4. Select the most suitable strategy
+5. Return your selection in this exact format:
+
+\`\`\`json
+{
+  "selected_strategy": "strategy_key",
+  "strategy_name": "Strategy Display Name",
+  "reasoning": "Detailed explanation of why this strategy is optimal for this prompt",
+  "expected_improvements": "What specific improvements this strategy will provide"
+}
+\`\`\`
+
+**Remember:** Choose the strategy that will be most effective for the specific characteristics and requirements of this prompt.`,
+          },
+        },
+      ],
+    };
+  }
+
+  private async handleStep3ExecuteStrategy(strategyKey: string, userPrompt: string) {
+    const strategy = this.strategyManager.getStrategy(strategyKey);
+    
+    if (!strategy) {
+      throw new Error(`Strategy '${strategyKey}' not found`);
+    }
+
+    const metapromptTemplate = strategy.template.replace('[Insert initial prompt here]', userPrompt);
+    
+    return {
+      messages: [
+        {
+          role: 'user' as const,
+          content: {
+            type: 'text' as const,
+            text: `STEP 3 of 3: Execute Selected Strategy - ${strategy.name}
+
+**Strategy Description:** ${strategy.description}
+
+**Original User Prompt:** ${userPrompt}
+
+**Your Task:** Apply the following meta-prompt template to produce a refined, enhanced version of the user's prompt.
+
+**Meta-prompt Template:**
+---
+${metapromptTemplate}
+---
+
+**Instructions:**
+1. Process the meta-prompt template completely and thoroughly
+2. Apply all the enhancement techniques specified in the template
+3. Return a final, polished, ready-to-use refined prompt
+4. Format your response as:
+
+\`\`\`
+REFINED PROMPT:
+[The final enhanced prompt, ready for immediate use]
+
+KEY IMPROVEMENTS:
+- [List the main enhancements made]
+- [Each improvement on a new line]
+
+STRATEGY APPLIED: ${strategy.name}
+\`\`\`
+
+**Goal:** Produce a significantly improved prompt that incorporates all the enhancements from the ${strategy.name} methodology.`,
+          },
         },
       ],
     };

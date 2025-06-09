@@ -135,4 +135,34 @@ export class StrategyManager {
     }
     return result;
   }
+
+  getCategoryStrategies(categoryName: string): Record<string, StrategyInfo> {
+    const result: Record<string, StrategyInfo> = {};
+    const categoryPath = join(this.strategiesDir, categoryName);
+    
+    for (const [key, strategy] of this.strategies) {
+      // Check if strategy belongs to this category by checking its file path
+      const strategyFiles = this.getStrategyFilesInCategory(categoryPath);
+      if (strategyFiles.includes(key)) {
+        result[key] = strategy;
+      }
+    }
+    return result;
+  }
+
+  private getStrategyFilesInCategory(categoryPath: string): string[] {
+    try {
+      const files = readdirSync(categoryPath);
+      return files
+        .filter(file => file.endsWith('.json') && file !== '_metadata.json')
+        .map(file => file.replace('.json', ''));
+    } catch (error) {
+      console.error(`Error reading category directory ${categoryPath}:`, error);
+      return [];
+    }
+  }
+
+  getCategoryNames(): string[] {
+    return Array.from(this.categoryMetadata.keys());
+  }
 }
