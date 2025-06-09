@@ -40,26 +40,56 @@ export class AutoRefineHandler extends BaseWorkflowHandler {
     const userPrompt = args.user_prompt || '[User prompt will be inserted here]';
     
     try {
-      const autoResult = this.promptRefiner.autoSelectStrategy(userPrompt);
-      const strategy = this.strategyManager.getStrategy(autoResult.recommended_strategy);
+      // Get all strategies organized by category
+      const allCategoriesMetadata = this.strategyManager.getAllCategoriesMetadata();
       
-      if (!strategy) {
-        throw new Error(`Strategy '${autoResult.recommended_strategy}' not found`);
-      }
+      const responseText = `You are an expert prompt engineer. Your task is to analyze the user's prompt and select the most appropriate strategy from all available options, then apply it.
 
-      const metapromptTemplate = strategy.template.replace('[Insert initial prompt here]', userPrompt);
-      
-      const responseText = `You are an expert prompt engineer. Based on the analysis, the '${strategy.name}' strategy is most suitable for this prompt because: ${autoResult.reason}.
+**User's Prompt:** ${userPrompt}
 
-Apply the following meta-prompt template to refine the user's prompt. Process it completely and return a JSON response with:
-1. initial_prompt_evaluation: Analysis of the original prompt's strengths and weaknesses
-2. refined_prompt: The enhanced version
-3. explanation_of_refinements: What was improved and why
+**Available Strategy Categories & Options:**
+${JSON.stringify(allCategoriesMetadata, null, 2)}
 
-Meta-prompt template:
-${metapromptTemplate}
+**Your Process:**
+1. **Analyze the user's prompt** to understand its:
+   - Domain (technical, creative, analytical, business, etc.)
+   - Complexity level (simple, moderate, complex)
+   - Key requirements and goals
+   - Specific characteristics that would benefit from enhancement
 
-Remember to return your response in valid JSON format.`;
+2. **Review all available strategies** across all categories:
+   - Core Strategies: General-purpose approaches
+   - Software Development: Code and system design focused
+   - AI Core Principles: Critical thinking frameworks
+   - Vibe Coding Rules: AI-assisted development patterns
+   - Advanced Thinking: Sophisticated reasoning methods
+
+3. **Select the most appropriate strategy** based on:
+   - Which strategy's "best_for" criteria match the prompt
+   - Trigger keywords that apply to the prompt
+   - Complexity level appropriate for the task
+   - Expected improvements needed
+
+4. **Apply the selected strategy** by:
+   - Using the strategy's metaprompt template approach
+   - Incorporating the strategy's specific enhancement techniques
+   - Following the strategy's methodology completely
+
+**Output Format:**
+\`\`\`
+SELECTED STRATEGY: [strategy_name]
+
+REASONING: [Why this strategy is optimal for this specific prompt]
+
+REFINED PROMPT:
+[The enhanced prompt using the selected strategy's approach]
+
+KEY IMPROVEMENTS:
+- [List specific enhancements made]
+- [Each improvement on a new line]
+\`\`\`
+
+**Important:** You must select and apply the strategy yourself - analyze all options and choose the one that best matches the user's prompt characteristics and requirements.`;
 
       return this.createResponse(responseText);
     } catch (error) {
@@ -115,38 +145,102 @@ export class CompareRefinementsHandler extends BaseWorkflowHandler {
     const strategiesStr = args.strategies;
     
     try {
-      let strategyKeys: string[];
+      let strategyInfo: Record<string, any> = {};
       
       if (strategiesStr) {
-        strategyKeys = strategiesStr.split(',').map((s: string) => s.trim());
-      } else {
-        const autoResult = this.promptRefiner.autoSelectStrategy(userPrompt);
-        strategyKeys = [
-          autoResult.recommended_strategy,
-          autoResult.alternative,
-          'physics'
-        ];
-      }
-
-      let comparisonText = 'You are an expert prompt engineer. Compare the following refinement strategies for the given prompt:\n\n';
-      comparisonText += `Original prompt: ${userPrompt}\n\n`;
-      
-      for (const key of strategyKeys.slice(0, 3)) {
-        const strategy = this.strategyManager.getStrategy(key);
-        if (strategy) {
-          comparisonText += `**Strategy: ${strategy.name}**\n`;
-          comparisonText += `Description: ${strategy.description}\n`;
-          comparisonText += `Approach: Apply this template and evaluate effectiveness\n\n`;
+        // User specified strategies to compare
+        const strategyKeys = strategiesStr.split(',').map((s: string) => s.trim());
+        for (const key of strategyKeys.slice(0, 5)) { // Limit to 5 for readability
+          const strategy = this.strategyManager.getStrategy(key);
+          if (strategy) {
+            strategyInfo[key] = {
+              name: strategy.name,
+              description: strategy.description,
+              bestFor: strategy.bestFor,
+              complexity: strategy.complexity,
+              triggers: strategy.triggers
+            };
+          }
         }
+      } else {
+        // Present all categories for LLM to choose from
+        const allCategoriesMetadata = this.strategyManager.getAllCategoriesMetadata();
+        
+        const responseText = `You are an expert prompt engineer. Your task is to select and compare the most relevant strategies for this prompt.
+
+**User's Prompt:** ${userPrompt}
+
+**Available Strategy Categories & Options:**
+${JSON.stringify(allCategoriesMetadata, null, 2)}
+
+**Your Process:**
+1. **Analyze the user's prompt** to identify key characteristics
+2. **Select 3-5 most relevant strategies** from different categories that could enhance this prompt
+3. **Compare each selected strategy** in detail
+4. **Recommend the best approach** with reasoning
+
+**Output Format:**
+\`\`\`json
+{
+  "prompt_analysis": "Brief analysis of the prompt's key characteristics",
+  "selected_strategies": [
+    {
+      "strategy_key": "strategy_name",
+      "strategy_name": "Display Name", 
+      "category": "category_name",
+      "suitability_score": 85,
+      "strengths": ["strength1", "strength2"],
+      "weaknesses": ["weakness1", "weakness2"],
+      "approach": "How this strategy would enhance the prompt"
+    }
+  ],
+  "recommendation": {
+    "best_strategy": "strategy_key",
+    "reasoning": "Detailed explanation of why this is optimal",
+    "expected_outcome": "What improvements this will provide"
+  },
+  "alternative": {
+    "strategy": "alternative_strategy_key", 
+    "when_to_use": "Scenarios where this alternative might be better"
+  }
+}
+\`\`\`
+
+**Important:** Select strategies that are actually relevant to the prompt. Consider domain, complexity, and specific enhancement needs.`;
+
+        return this.createResponse(responseText);
       }
       
-      comparisonText += `Analyze each strategy and return a JSON response with:
-1. comparisons: Object with each strategy's strengths, weaknesses, and suitability score (0-100)
-2. recommendation: The best strategy key
-3. reasoning: Why this strategy is best for this specific prompt
-4. sample_refinement: A brief example of how the recommended strategy would enhance the prompt
+      // If specific strategies were provided, compare them
+      const comparisonText = `You are an expert prompt engineer. Compare these specific strategies for the given prompt:
 
-Return your response in valid JSON format.`;
+**User's Prompt:** ${userPrompt}
+
+**Strategies to Compare:**
+${JSON.stringify(strategyInfo, null, 2)}
+
+**Your Task:**
+Analyze each strategy's fit for this specific prompt and provide a detailed comparison.
+
+**Output Format:**
+\`\`\`json
+{
+  "prompt_analysis": "Analysis of the prompt's characteristics",
+  "strategy_comparisons": {
+    "strategy_key": {
+      "suitability_score": 0-100,
+      "strengths": ["list of strengths for this prompt"],
+      "weaknesses": ["list of limitations for this prompt"], 
+      "enhancement_approach": "How this strategy would improve the prompt"
+    }
+  },
+  "recommendation": {
+    "best_strategy": "strategy_key",
+    "reasoning": "Why this strategy is optimal for this prompt",
+    "sample_enhancement": "Brief example of how it would enhance the prompt"
+  }
+}
+\`\`\``;
 
       return this.createResponse(comparisonText);
     } catch (error) {
@@ -161,32 +255,49 @@ export class TwoStepWorkflowHandler extends BaseWorkflowHandler {
     const userPrompt = args.user_prompt || '[User prompt will be inserted here]';
     
     try {
-      const autoResult = this.promptRefiner.autoSelectStrategy(userPrompt);
-      const strategy = this.strategyManager.getStrategy(autoResult.recommended_strategy);
+      // Get all strategies organized by category
+      const allCategoriesMetadata = this.strategyManager.getAllCategoriesMetadata();
       
-      if (!strategy) {
-        throw new Error(`Strategy '${autoResult.recommended_strategy}' not found`);
-      }
+      const responseText = `STEP 1: Strategy Selection and Metaprompt Preparation
 
-      const metapromptTemplate = strategy.template.replace('[Insert initial prompt here]', userPrompt);
-      
-      const responseText = `STEP 1 COMPLETE: Metaprompt preparation for prompt refinement.
+**User's Prompt:** ${userPrompt}
 
-**Analysis Results:**
-- Selected Strategy: ${strategy.name}
-- Reason: ${autoResult.reason}
-- Alternative: ${autoResult.alternative_name}
+**Available Strategy Categories & Options:**
+${JSON.stringify(allCategoriesMetadata, null, 2)}
 
-**Instructions for Next Step:**
-Execute the following metaprompt and return the results to the \`execute_refinement\` prompt:
+**Your Task:**
+1. **Analyze the user's prompt** to understand its characteristics and requirements
+2. **Select the most appropriate strategy** from all available options
+3. **Prepare metaprompt execution instructions** for the next step
 
----
-${metapromptTemplate}
----
+**Process:**
+- Review all strategy categories and their available options
+- Consider which strategy's approach would best enhance this specific prompt
+- Look at "best_for" criteria, triggers, and complexity levels
+- Choose the strategy that provides the most relevant improvements
 
-**Expected Output:** Process this metaprompt completely and provide your detailed analysis and refined prompt. Then call the \`execute_refinement\` prompt with your results to get the final refined prompt.
+**Output Format:**
+\`\`\`
+STEP 1 COMPLETE: Strategy Selected for Prompt Refinement
 
-**Original Prompt (for reference):** ${userPrompt}`;
+SELECTED STRATEGY: [strategy_name] ([category])
+REASONING: [Why this strategy is optimal for this prompt]
+
+METAPROMPT INSTRUCTIONS:
+Apply the [strategy_name] methodology to enhance the user's prompt. This strategy focuses on [strategy's key approach] and is designed for [strategy's best use cases].
+
+Key enhancement areas to address:
+- [List 3-5 specific improvements this strategy provides]
+- [Each should be relevant to the user's prompt]
+
+Process the prompt using [strategy_name] principles and provide a comprehensive enhancement that incorporates [strategy's specific techniques].
+
+ORIGINAL PROMPT: ${userPrompt}
+
+NEXT STEP: Execute this metaprompt analysis, then use the 'execute_refinement' prompt with your results.
+\`\`\`
+
+**Important:** Select the strategy that best matches the prompt's needs - you have access to all 44+ strategies across 5 categories.`;
 
       return this.createResponse(responseText);
     } catch (error) {
