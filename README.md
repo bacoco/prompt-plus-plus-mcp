@@ -34,6 +34,12 @@ Add to your `claude_desktop_config.json`:
 ### Claude Code
 Works automatically once installed globally.
 
+## 🧠 How It Works
+
+For a detailed explanation of the process with examples, see **[PROCESS_EXPLANATION.md](./PROCESS_EXPLANATION.md)**.
+
+**Key Principle**: The MCP server only provides strategy templates and metadata. The LLM makes ALL decisions about which strategy to use based on prompt analysis.
+
 ## 🎯 What Actually Happens: Step-by-Step Example
 
 Let's walk through what happens when you use Prompt++ to refine a prompt:
