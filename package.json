@@ -1,6 +1,6 @@
 {
   "name": "prompt-plus-plus-mcp",
-  "version": "4.0.2",
+  "version": "4.1.0",
   "description": "Advanced MCP server with 44+ metaprompt strategies including AI Core Principles, Vibe Coding Rules, and metadata-driven intelligent selection",
   "keywords": [
     "mcp",
