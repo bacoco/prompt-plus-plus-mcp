@@ -164,6 +164,14 @@ export class PromptPlusMCPServer {
               required: ['strategy'],
             },
           },
+          {
+            name: 'discover_strategies',
+            description: 'Get comprehensive metadata about all strategy categories and their available strategies for intelligent selection',
+            inputSchema: {
+              type: 'object',
+              properties: {},
+            },
+          },
         ],
       };
     });
@@ -180,6 +188,8 @@ export class PromptPlusMCPServer {
           throw new Error('Strategy parameter is required');
         }
         return this.handleGetStrategyDetails(strategy);
+      } else if (name === 'discover_strategies') {
+        return this.handleDiscoverStrategies();
       } else {
         throw new Error(`Unknown tool: ${name}`);
       }
@@ -433,6 +443,29 @@ IMPROVEMENTS SUMMARY:
             template_preview: strategy.template.length > 200 
               ? strategy.template.substring(0, 200) + '...' 
               : strategy.template,
+          }, null, 2),
+        },
+      ],
+    };
+  }
+
+  private async handleDiscoverStrategies() {
+    const categoryMetadata = this.strategyManager.getAllCategoriesMetadata();
+    
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: JSON.stringify({
+            total_strategies: this.strategyManager.getStrategyNames().length,
+            categories: categoryMetadata,
+            usage: {
+              selection_process: "1. Review category descriptions and use cases. 2. Examine individual strategies within relevant categories. 3. Select the most appropriate strategy based on triggers and best_for criteria.",
+              trigger_keywords: "Each strategy lists trigger keywords that indicate when it should be used",
+              complexity_levels: "Strategies are rated as Low/Medium/High complexity with corresponding time investment",
+              prompt_naming: "Use 'refine_with_[strategy_key]' to apply a specific strategy (e.g., 'refine_with_assumption_detector')"
+            },
+            auto_selection: "Use 'auto_refine' for automatic strategy selection based on keyword analysis"
           }, null, 2),
         },
       ],

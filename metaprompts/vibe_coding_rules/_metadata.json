@@ -1,0 +1,102 @@
+{
+  "category": "Vibe Coding Rules", 
+  "description": "AI-assisted development patterns that optimize modern coding workflows. These rules leverage AI tools effectively while maintaining code quality, team velocity, and systematic practices.",
+  "use_cases": [
+    "AI-assisted development optimization",
+    "Team workflow improvement", 
+    "Code quality maintenance",
+    "Development velocity enhancement",
+    "Best practices enforcement",
+    "Continuous improvement processes"
+  ],
+  "strategies": [
+    {
+      "key": "start_from_template",
+      "name": "Start from Template",
+      "description": "Leverage proven templates, boilerplates, and architectural patterns for solid foundations",
+      "best_for": ["New projects", "Rapid prototyping", "Best practices adoption"],
+      "triggers": ["template", "boilerplate", "starter", "scaffold"],
+      "output_focus": "Template selection and customization strategy"
+    },
+    {
+      "key": "use_agent_mode",
+      "name": "Use Agent Mode", 
+      "description": "Optimize AI coding assistant workflows for intuitive, conversational development",
+      "best_for": ["AI pair programming", "Complex implementations", "Learning new tech"],
+      "triggers": ["agent", "assistant", "ai help", "copilot"],
+      "output_focus": "AI collaboration workflow and quality control"
+    },
+    {
+      "key": "write_tests_first",
+      "name": "Write Tests First (TDD)",
+      "description": "Implement Test-Driven Development for clarity, better design, and comprehensive coverage",
+      "best_for": ["New features", "Critical systems", "API development"],
+      "triggers": ["test", "tdd", "testing", "spec"],
+      "output_focus": "TDD workflow and test design strategy"
+    },
+    {
+      "key": "keep_files_small",
+      "name": "Keep Files Under 300 Lines",
+      "description": "Maintain modular, readable code through file size constraints and separation of concerns",
+      "best_for": ["Code organization", "Maintainability", "Team collaboration"],
+      "triggers": ["file", "large", "modular", "organize"],
+      "output_focus": "Modularization strategy and file organization"
+    },
+    {
+      "key": "run_locally_test_frequently", 
+      "name": "Run Locally, Test Frequently",
+      "description": "Establish rapid feedback loops through continuous local testing and validation",
+      "best_for": ["Development speed", "Bug prevention", "Confidence building"],
+      "triggers": ["local", "frequently", "feedback", "iteration"],
+      "output_focus": "Rapid feedback setup and continuous validation"
+    },
+    {
+      "key": "follow_existing_patterns",
+      "name": "Follow Existing Patterns",
+      "description": "Maintain consistency by adhering to established codebase patterns and conventions",
+      "best_for": ["Team consistency", "Onboarding", "Maintenance"],
+      "triggers": ["pattern", "convention", "consistent", "existing"],
+      "output_focus": "Pattern identification and consistency strategy"
+    },
+    {
+      "key": "delete_aggressively",
+      "name": "Delete Aggressively",
+      "description": "Remove dead code, unused dependencies, and unnecessary complexity ruthlessly",
+      "best_for": ["Technical debt reduction", "Performance", "Clarity"],
+      "triggers": ["delete", "remove", "cleanup", "unused"],
+      "output_focus": "Deletion strategy and complexity reduction"
+    },
+    {
+      "key": "ship_small_changes",
+      "name": "Ship Small Changes",
+      "description": "Deploy small, incremental changes frequently for reduced risk and faster feedback",
+      "best_for": ["Risk reduction", "Continuous delivery", "Team velocity"],
+      "triggers": ["small", "incremental", "deploy", "ship"],
+      "output_focus": "Incremental delivery strategy and deployment plan"
+    },
+    {
+      "key": "collaborate_early_often",
+      "name": "Collaborate Early and Often", 
+      "description": "Engage stakeholders throughout development to prevent misalignment and leverage collective intelligence",
+      "best_for": ["Team alignment", "Stakeholder management", "Knowledge sharing"],
+      "triggers": ["collaborate", "team", "together", "communicate"],
+      "output_focus": "Collaboration strategy and communication plan"
+    },
+    {
+      "key": "refactor_continuously", 
+      "name": "Refactor Continuously",
+      "description": "Improve code structure as part of regular development without dedicated refactoring sprints",
+      "best_for": ["Code quality", "Technical debt prevention", "Maintainability"],
+      "triggers": ["refactor", "improve", "clean", "quality"],
+      "output_focus": "Continuous refactoring strategy and quality improvement"
+    },
+    {
+      "key": "document_intent",
+      "name": "Document Intent, Not Implementation", 
+      "description": "Focus documentation on why decisions were made and what problems are solved",
+      "best_for": ["Knowledge preservation", "Decision tracking", "Team understanding"],
+      "triggers": ["document", "why", "intent", "decision"],
+      "output_focus": "Intent documentation strategy and decision records"
+    }
+  ]
+}

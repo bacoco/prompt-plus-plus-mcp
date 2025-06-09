@@ -1,10 +1,11 @@
-import { readFileSync, readdirSync } from 'fs';
+import { readFileSync, readdirSync, statSync } from 'fs';
 import { join, resolve } from 'path';
 import type { StrategyInfo } from './types.js';
 
 export class StrategyManager {
   private strategies: Map<string, StrategyInfo> = new Map();
   private strategiesDir: string;
+  private categoryMetadata: Map<string, any> = new Map();
 
   constructor(strategiesDir?: string) {
     try {
@@ -40,31 +41,53 @@ export class StrategyManager {
 
   private loadStrategies(): void {
     try {
-      const files = readdirSync(this.strategiesDir);
-      const jsonFiles = files.filter(file => file.endsWith('.json'));
+      this.loadStrategiesFromDirectory(this.strategiesDir);
+    } catch (error) {
+      throw new Error(`Strategies directory not found: ${this.strategiesDir}`);
+    }
+  }
+
+  private loadStrategiesFromDirectory(dirPath: string): void {
+    try {
+      const files = readdirSync(dirPath);
       
-      for (const file of jsonFiles) {
-        try {
-          const filePath = join(this.strategiesDir, file);
-          const content = readFileSync(filePath, 'utf-8');
-          const data = JSON.parse(content);
-          const key = file.replace('.json', '');
-          
-          const strategy: StrategyInfo = {
-            key,
-            name: data.name || key,
-            description: data.description || '',
-            examples: data.examples || [],
-            template: data.template || ''
-          };
-          
-          this.strategies.set(key, strategy);
-        } catch (error) {
-          console.error(`Error loading strategy ${file}:`, error);
+      for (const file of files) {
+        const filePath = join(dirPath, file);
+        const stat = statSync(filePath);
+        
+        if (stat.isDirectory()) {
+          // Recursively load from subdirectories
+          this.loadStrategiesFromDirectory(filePath);
+        } else if (file.endsWith('.json')) {
+          try {
+            const content = readFileSync(filePath, 'utf-8');
+            const data = JSON.parse(content);
+            
+            if (file === '_metadata.json') {
+              // Load category metadata
+              const categoryName = dirPath.split('/').pop() || 'unknown';
+              this.categoryMetadata.set(categoryName, data);
+            } else {
+              // Load strategy
+              const key = file.replace('.json', '');
+              
+              const strategy: StrategyInfo = {
+                key,
+                name: data.name || key,
+                description: data.description || '',
+                examples: data.examples || [],
+                template: data.template || ''
+              };
+              
+              this.strategies.set(key, strategy);
+            }
+          } catch (error) {
+            console.error(`Error loading strategy ${file}:`, error);
+          }
         }
       }
     } catch (error) {
-      throw new Error(`Strategies directory not found: ${this.strategiesDir}`);
+      console.error(`Error reading directory ${dirPath}:`, error);
     }
   }
 
@@ -99,5 +122,17 @@ export class StrategyManager {
       }
     }
     return examples;
+  }
+
+  getCategoryMetadata(): Map<string, any> {
+    return new Map(this.categoryMetadata);
+  }
+
+  getAllCategoriesMetadata(): Record<string, any> {
+    const result: Record<string, any> = {};
+    for (const [categoryName, metadata] of this.categoryMetadata) {
+      result[categoryName] = metadata;
+    }
+    return result;
   }
 }

@@ -1,0 +1,93 @@
+{
+  "category": "Core Strategies",
+  "description": "Foundational prompt refinement approaches suitable for general-purpose use. These strategies provide different levels of complexity and focus areas for comprehensive prompt enhancement.",
+  "use_cases": [
+    "General prompt improvement",
+    "Creative writing enhancement", 
+    "Complex analysis tasks",
+    "Mathematical reasoning",
+    "Quick refinements"
+  ],
+  "strategies": [
+    {
+      "key": "star",
+      "name": "ECHO Prompt",
+      "description": "Comprehensive multi-stage approach for complex prompts requiring in-depth analysis and exploration of multiple alternatives",
+      "best_for": ["Complex creative tasks", "Detailed analysis", "Multi-faceted problems"],
+      "complexity": "High",
+      "time_investment": "High"
+    },
+    {
+      "key": "done", 
+      "name": "Done Prompt",
+      "description": "Structured approach with role-playing and advanced techniques for detailed step-by-step refinement",
+      "best_for": ["Structured tasks", "Role-playing scenarios", "Process-oriented problems"],
+      "complexity": "Medium-High",
+      "time_investment": "Medium"
+    },
+    {
+      "key": "physics",
+      "name": "Physics Prompt", 
+      "description": "Balanced analytical approach with scientific focus, ideal for technical and scientific prompts",
+      "best_for": ["Scientific analysis", "Technical problems", "Logical reasoning"],
+      "complexity": "Medium",
+      "time_investment": "Medium"
+    },
+    {
+      "key": "morphosis",
+      "name": "Morphosis Prompt",
+      "description": "Simple and efficient approach for straightforward prompts when time is limited",
+      "best_for": ["Quick improvements", "Simple tasks", "Time-constrained situations"],
+      "complexity": "Low",
+      "time_investment": "Low"
+    },
+    {
+      "key": "verse",
+      "name": "Verse Prompt",
+      "description": "Analyzes prompt strengths and weaknesses with focus on information flow and logical structure",
+      "best_for": ["Structure improvement", "Information flow", "Logical enhancement"],
+      "complexity": "Medium",
+      "time_investment": "Medium"
+    },
+    {
+      "key": "math",
+      "name": "Math Prompt", 
+      "description": "Specialized approach for mathematical reasoning, proofs, and formal logic",
+      "best_for": ["Mathematical problems", "Formal proofs", "Logical reasoning"],
+      "complexity": "High",
+      "time_investment": "Medium"
+    },
+    {
+      "key": "phor",
+      "name": "Phor Prompt",
+      "description": "Advanced approach combining multiple prompt engineering techniques for complex tasks",
+      "best_for": ["Complex techniques", "Multi-method approach", "Sophisticated prompting"],
+      "complexity": "High", 
+      "time_investment": "Medium-High"
+    },
+    {
+      "key": "bolism",
+      "name": "Bolism Prompt",
+      "description": "Optimization-focused approach with careful reasoning and detailed output formatting",
+      "best_for": ["Optimization tasks", "Structured output", "Reasoning chains"],
+      "complexity": "Medium",
+      "time_investment": "Medium"
+    },
+    {
+      "key": "arpe", 
+      "name": "Arpe Prompt",
+      "description": "Advanced reasoning and proof engineering for complex logical challenges",
+      "best_for": ["Advanced reasoning", "Proof engineering", "Complex logic"],
+      "complexity": "High",
+      "time_investment": "High"
+    },
+    {
+      "key": "touille",
+      "name": "Touille Prompt", 
+      "description": "General-purpose refinement approach with balanced techniques",
+      "best_for": ["General refinement", "Balanced approach", "Moderate complexity"],
+      "complexity": "Medium",
+      "time_investment": "Medium"
+    }
+  ]
+}

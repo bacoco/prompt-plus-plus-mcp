@@ -1,0 +1,46 @@
+{
+  "category": "Software Development",
+  "description": "Specialized strategies for software engineering tasks including architecture design, iterative development, code quality, and DevOps practices. These approaches focus on technical implementation and engineering best practices.",
+  "use_cases": [
+    "Software architecture design",
+    "Development process optimization", 
+    "Code review and quality assurance",
+    "DevOps and infrastructure automation",
+    "Technical documentation",
+    "Engineering best practices"
+  ],
+  "strategies": [
+    {
+      "key": "architect",
+      "name": "Software Architect",
+      "description": "Specialized for system design, architecture decisions, and large-scale software planning",
+      "best_for": ["System architecture", "Microservices design", "Scalability planning"],
+      "triggers": ["architecture", "system design", "microservices", "scalability"],
+      "output_focus": "Architecture patterns and design decisions"
+    },
+    {
+      "key": "boomerang", 
+      "name": "Boomerang Code Development",
+      "description": "Iterative development approach with feedback loops for complex coding tasks requiring refinement",
+      "best_for": ["Complex implementations", "Iterative development", "Code evolution"],
+      "triggers": ["iterative", "testing", "development cycle", "feedback"],
+      "output_focus": "Iterative development strategy and feedback loops"
+    },
+    {
+      "key": "reviewer",
+      "name": "Code Review & QA",
+      "description": "Comprehensive code review and quality assurance framework for establishing standards and processes",
+      "best_for": ["Code quality", "Review processes", "Standards establishment"],
+      "triggers": ["review", "quality", "standards", "best practices"],
+      "output_focus": "Review guidelines and quality frameworks"
+    },
+    {
+      "key": "devops",
+      "name": "DevOps & Infrastructure", 
+      "description": "Specialized for DevOps practices, CI/CD pipelines, Infrastructure as Code, and deployment automation",
+      "best_for": ["CI/CD setup", "Infrastructure automation", "Deployment strategies"],
+      "triggers": ["devops", "ci/cd", "deployment", "infrastructure"],
+      "output_focus": "DevOps practices and automation strategies"
+    }
+  ]
+}

@@ -5,7 +5,7 @@ An MCP (Model Context Protocol) server that enhances prompts using various metap
 ## 🚀 Features
 
 - **🎯 Two-Step Workflow**: Prepare → Execute → Refine for controlled enhancement
-- **🧠 20 Metaprompt Strategies**: Comprehensive collection for different needs
+- **🧠 44 Metaprompt Strategies**: Comprehensive collection including AI Core Principles and Vibe Coding Rules
 - **🤖 Smart Strategy Selection**: Automatically picks the best approach for your prompt  
 - **⚡ TypeScript**: Type-safe implementation with official MCP SDK
 - **🔧 Easy Integration**: Works with Claude Desktop and Claude Code
@@ -74,6 +74,34 @@ The server works automatically with Claude Code once installed globally.
 - **Temporal**: Multi-timeline analysis
 - **Synthesis**: Cross-domain concept fusion
 
+### AI Core Principles (13)
+- **Assumption Detector**: Challenge hidden assumptions
+- **Devil's Advocate**: Generate systematic counterarguments
+- **Ripple Effect Analyzer**: Trace cascading consequences
+- **Perspective Multiplier**: Analyze through multiple stakeholder lenses
+- **Evidence Seeker**: Demand concrete evidence and validation
+- **Pattern Recognizer**: Identify recurring patterns and anti-patterns
+- **Root Cause Analyzer**: Drill down to fundamental causes
+- **Constraint Identifier**: Map and challenge limiting constraints
+- **Paradox Navigator**: Resolve contradictory requirements
+- **Tradeoff Tracker**: Make implicit sacrifices explicit
+- **Context Expander**: Broaden frame to prevent local optimization
+- **Precision Questioner**: Transform vague into precise specifications
+- **Time Capsule Test**: Project decisions across time horizons
+
+### Vibe Coding Rules (11)
+- **Start from Template**: Leverage proven boilerplates and patterns
+- **Use Agent Mode**: Optimize AI-assisted development workflows
+- **Write Tests First**: Implement TDD for clarity and quality
+- **Keep Files Small**: Maintain modular, readable code structure
+- **Run Locally, Test Frequently**: Establish rapid feedback loops
+- **Follow Existing Patterns**: Maintain consistency and conventions
+- **Delete Aggressively**: Remove dead code and complexity
+- **Ship Small Changes**: Deploy incremental, safe changes
+- **Collaborate Early and Often**: Engage stakeholders throughout
+- **Refactor Continuously**: Improve structure as part of development
+- **Document Intent**: Focus on why, not how
+
 ## 🎯 Usage
 
 ### Basic Usage
@@ -114,9 +142,14 @@ Use the get_strategy_details tool with strategy: "star"
 ## 🔧 Development
 
 ### Adding New Strategies
-1. Create a new JSON file in `metaprompts/`
+1. Create a new JSON file in the appropriate `metaprompts/` subdirectory:
+   - `core_strategies/` - General-purpose refinement approaches
+   - `software_development/` - Development-focused strategies  
+   - `advanced_thinking/` - Complex reasoning frameworks
+   - `ai_core_principles/` - Critical thinking enhancement
+   - `vibe_coding_rules/` - AI-assisted development patterns
 2. Follow the existing format with `name`, `description`, `template`, and `examples`
-3. The server automatically loads all JSON files from the metaprompts directory
+3. The server automatically loads all JSON files from the metaprompts directory tree
 
 ### Testing
 ```bash
@@ -132,14 +165,19 @@ npm run build
 
 ```
 prompt-plus-plus-mcp/
-├── src/                    # TypeScript source code
-│   ├── index.ts           # Main MCP server
-│   ├── strategy-manager.ts # Strategy loading logic
-│   ├── prompt-refiner.ts  # Auto-selection heuristics
-│   └── types.ts          # Type definitions
-├── metaprompts/           # Strategy definitions (JSON)
-├── dist/                  # Compiled JavaScript
-└── package.json          # Package configuration
+├── src/                          # TypeScript source code
+│   ├── index.ts                 # Main MCP server
+│   ├── strategy-manager.ts      # Strategy loading logic
+│   ├── prompt-refiner.ts        # Auto-selection heuristics
+│   └── types.ts                # Type definitions
+├── metaprompts/                 # Strategy definitions (JSON)
+│   ├── core_strategies/         # 10 foundational strategies
+│   ├── software_development/    # 4 dev-focused strategies
+│   ├── advanced_thinking/       # 6 ultrathink strategies
+│   ├── ai_core_principles/      # 13 critical thinking frameworks
+│   └── vibe_coding_rules/       # 11 AI-assisted development patterns
+├── dist/                        # Compiled JavaScript
+└── package.json                # Package configuration
 ```
 
 ## 🤝 Contributing

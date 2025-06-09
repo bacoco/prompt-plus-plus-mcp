@@ -1,0 +1,62 @@
+{
+  "category": "Advanced Thinking",
+  "description": "Sophisticated reasoning frameworks that transcend conventional thinking patterns. These strategies employ quantum thinking, recursive analysis, temporal reasoning, and creative synthesis for breakthrough insights.",
+  "use_cases": [
+    "Complex problem solving",
+    "Innovation and breakthrough thinking",
+    "Multi-dimensional analysis", 
+    "Creative synthesis and fusion",
+    "Strategic planning and foresight",
+    "Cognitive bias mitigation"
+  ],
+  "strategies": [
+    {
+      "key": "metacognitive",
+      "name": "Metacognitive Reflection Engine",
+      "description": "Advanced self-reflective thinking that analyzes the thinking process itself to overcome cognitive biases",
+      "best_for": ["Complex reasoning", "Bias detection", "Self-improvement"],
+      "triggers": ["thinking", "cognitive", "bias", "meta", "self-reflection"],
+      "output_focus": "Thinking process analysis and cognitive enhancement"
+    },
+    {
+      "key": "adversarial",
+      "name": "Adversarial Red-Blue Team",
+      "description": "Strategic adversarial thinking using attack/defense methodology for stress-testing ideas",
+      "best_for": ["Idea validation", "Vulnerability assessment", "Robust solutions"],
+      "triggers": ["attack", "defend", "secure", "vulnerability", "robust"],
+      "output_focus": "Adversarial analysis and fortification strategies"
+    },
+    {
+      "key": "fractal", 
+      "name": "Fractal Recursive Decomposition",
+      "description": "Self-similar problem decomposition that reveals patterns across scales and hierarchies",
+      "best_for": ["Complex systems", "Pattern recognition", "Recursive problems"],
+      "triggers": ["scale", "recursive", "fractal", "hierarchy", "decomposition"],
+      "output_focus": "Multi-scale analysis and recursive insights"
+    },
+    {
+      "key": "quantum",
+      "name": "Quantum Superposition Thinking",
+      "description": "Parallel possibility exploration using quantum mechanics principles for navigating uncertainty",
+      "best_for": ["Uncertainty navigation", "Multiple solutions", "Ambiguous problems"],
+      "triggers": ["uncertainty", "multiple", "parallel", "quantum", "superposition"],
+      "output_focus": "Parallel possibility analysis and uncertainty resolution"
+    },
+    {
+      "key": "temporal",
+      "name": "Temporal Multi-Timeline Analysis", 
+      "description": "Time-aware problem solving across past, present, and future dimensions with causality analysis",
+      "best_for": ["Strategic planning", "Historical analysis", "Future projection"],
+      "triggers": ["time", "timeline", "historical", "future", "temporal"],
+      "output_focus": "Multi-temporal analysis and strategic foresight"
+    },
+    {
+      "key": "synthesis",
+      "name": "Synthesis Fusion Engine",
+      "description": "Creative fusion of disparate concepts and domains for breakthrough innovation and novel approaches",
+      "best_for": ["Innovation", "Cross-domain thinking", "Creative solutions"],
+      "triggers": ["combine", "synthesis", "fusion", "innovation", "cross-domain"],
+      "output_focus": "Creative synthesis and breakthrough innovation"
+    }
+  ]
+}

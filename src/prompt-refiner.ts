@@ -11,8 +11,84 @@ export class PromptRefiner {
     let recommendedKey: string;
     let reason: string;
     
-    // Ultra-enhanced heuristics with revolutionary thinking strategies
-    if (this.hasKeywords(promptLower, ["thinking", "cognitive", "bias", "assumption", "meta", "recursive", "self-reflection"])) {
+    // AI Core Principles - Critical Thinking Enhancement
+    if (this.hasKeywords(promptLower, ["assumption", "assume", "suppose", "expect", "implicit", "given that"])) {
+      recommendedKey = "assumption_detector";
+      reason = "Systematically challenge hidden assumptions to reveal better solutions";
+    } else if (this.hasKeywords(promptLower, ["decision", "choice", "alternative", "option", "should we", "vs", "versus"])) {
+      recommendedKey = "devils_advocate";
+      reason = "Generate counterarguments to test decision robustness";
+    } else if (this.hasKeywords(promptLower, ["consequences", "impact", "effects", "ripple", "cascade", "downstream"])) {
+      recommendedKey = "ripple_effect";
+      reason = "Analyze cascading effects across systems and time";
+    } else if (this.hasKeywords(promptLower, ["stakeholder", "perspective", "viewpoint", "different", "various", "multiple views"])) {
+      recommendedKey = "perspective_multiplier";
+      reason = "Examine problem through multiple stakeholder lenses";
+    } else if (this.hasKeywords(promptLower, ["evidence", "proof", "data", "validate", "verify", "support", "basis"])) {
+      recommendedKey = "evidence_seeker";
+      reason = "Demand concrete evidence before accepting claims";
+    } else if (this.hasKeywords(promptLower, ["pattern", "similar", "recurring", "repeated", "trend", "common"])) {
+      recommendedKey = "pattern_recognizer";
+      reason = "Identify patterns and anti-patterns for better solutions";
+    } else if (this.hasKeywords(promptLower, ["why", "root cause", "underlying", "fundamental", "source", "origin"])) {
+      recommendedKey = "root_cause_analyzer";
+      reason = "Drill down to fundamental causes rather than symptoms";
+    } else if (this.hasKeywords(promptLower, ["constraint", "limitation", "bound", "restrict", "cannot", "impossible"])) {
+      recommendedKey = "constraint_identifier";
+      reason = "Map and challenge constraints to expand solution space";
+    } else if (this.hasKeywords(promptLower, ["paradox", "contradiction", "both", "conflicting", "opposing", "tension"])) {
+      recommendedKey = "paradox_navigator";
+      reason = "Resolve contradictory requirements through creative synthesis";
+    } else if (this.hasKeywords(promptLower, ["tradeoff", "sacrifice", "cost", "benefit", "exchange", "compromise"])) {
+      recommendedKey = "tradeoff_tracker";
+      reason = "Make all tradeoffs explicit including hidden costs";
+    } else if (this.hasKeywords(promptLower, ["context", "broader", "bigger picture", "scope", "system", "holistic"])) {
+      recommendedKey = "context_expander";
+      reason = "Expand context to prevent local optimization problems";
+    } else if (this.hasKeywords(promptLower, ["vague", "unclear", "ambiguous", "specific", "precise", "clarify"])) {
+      recommendedKey = "precision_questioner";
+      reason = "Transform vague requirements into precise specifications";
+    } else if (this.hasKeywords(promptLower, ["future", "long-term", "maintainability", "evolution", "years", "legacy"])) {
+      recommendedKey = "time_capsule_test";
+      reason = "Project decisions across time horizons for durability";
+    
+    // Vibe Coding Rules - AI-Assisted Development
+    } else if (this.hasKeywords(promptLower, ["template", "boilerplate", "starter", "scaffold", "foundation", "begin"])) {
+      recommendedKey = "start_from_template";
+      reason = "Leverage proven templates for faster, better foundations";
+    } else if (this.hasKeywords(promptLower, ["agent", "assistant", "ai help", "copilot", "pair", "collaborate"])) {
+      recommendedKey = "use_agent_mode";
+      reason = "Optimize AI-assisted development workflow";
+    } else if (this.hasKeywords(promptLower, ["test", "tdd", "testing", "spec", "behavior", "should"])) {
+      recommendedKey = "write_tests_first";
+      reason = "Test-driven development for clarity and quality";
+    } else if (this.hasKeywords(promptLower, ["file", "large", "complex", "modular", "organize", "structure"])) {
+      recommendedKey = "keep_files_small";
+      reason = "Maintain modular, readable code through size constraints";
+    } else if (this.hasKeywords(promptLower, ["local", "test", "frequently", "feedback", "quick", "iteration"])) {
+      recommendedKey = "run_locally_test_frequently";
+      reason = "Establish rapid feedback loops for continuous validation";
+    } else if (this.hasKeywords(promptLower, ["pattern", "convention", "consistent", "style", "existing", "follow"])) {
+      recommendedKey = "follow_existing_patterns";
+      reason = "Maintain consistency by following established patterns";
+    } else if (this.hasKeywords(promptLower, ["delete", "remove", "cleanup", "dead code", "unused", "simplify"])) {
+      recommendedKey = "delete_aggressively";
+      reason = "Remove unnecessary complexity and dead code";
+    } else if (this.hasKeywords(promptLower, ["small", "incremental", "deploy", "ship", "release", "gradual"])) {
+      recommendedKey = "ship_small_changes";
+      reason = "Deploy small, safe increments for faster feedback";
+    } else if (this.hasKeywords(promptLower, ["collaborate", "team", "together", "share", "communicate", "align"])) {
+      recommendedKey = "collaborate_early_often";
+      reason = "Engage stakeholders throughout development";
+    } else if (this.hasKeywords(promptLower, ["refactor", "improve", "clean", "quality", "technical debt", "maintainability"])) {
+      recommendedKey = "refactor_continuously";
+      reason = "Improve code structure as part of regular development";
+    } else if (this.hasKeywords(promptLower, ["document", "why", "intent", "decision", "rationale", "purpose"])) {
+      recommendedKey = "document_intent";
+      reason = "Document why decisions were made, not how code works";
+    
+    // Advanced Thinking Strategies
+    } else if (this.hasKeywords(promptLower, ["thinking", "cognitive", "bias", "assumption", "meta", "recursive", "self-reflection"])) {
       recommendedKey = "metacognitive";
       reason = "Meta-cognitive reflection for examining thinking processes and cognitive biases";
     } else if (this.hasKeywords(promptLower, ["attack", "defend", "secure", "vulnerability", "stress test", "robust", "adversarial"])) {
@@ -70,8 +146,37 @@ export class PromptRefiner {
 
     const strategy = this.strategyManager.getStrategy(recommendedKey);
     
-    // Determine alternative with ultrathink and specialized strategies
+    // Determine alternative with AI Core Principles, Vibe Coding Rules, and existing strategies
     const alternatives: Record<string, string> = {
+      // AI Core Principles alternatives
+      "assumption_detector": "devils_advocate",
+      "devils_advocate": "assumption_detector", 
+      "ripple_effect": "context_expander",
+      "perspective_multiplier": "evidence_seeker",
+      "evidence_seeker": "precision_questioner",
+      "pattern_recognizer": "root_cause_analyzer",
+      "root_cause_analyzer": "pattern_recognizer",
+      "constraint_identifier": "paradox_navigator",
+      "paradox_navigator": "constraint_identifier",
+      "tradeoff_tracker": "time_capsule_test",
+      "context_expander": "ripple_effect",
+      "precision_questioner": "evidence_seeker",
+      "time_capsule_test": "tradeoff_tracker",
+      
+      // Vibe Coding Rules alternatives
+      "start_from_template": "follow_existing_patterns",
+      "use_agent_mode": "collaborate_early_often",
+      "write_tests_first": "run_locally_test_frequently",
+      "keep_files_small": "refactor_continuously",
+      "run_locally_test_frequently": "write_tests_first",
+      "follow_existing_patterns": "start_from_template",
+      "delete_aggressively": "refactor_continuously",
+      "ship_small_changes": "run_locally_test_frequently",
+      "collaborate_early_often": "use_agent_mode",
+      "refactor_continuously": "keep_files_small",
+      "document_intent": "follow_existing_patterns",
+      
+      // Original strategies
       "star": "verse",
       "verse": "physics", 
       "math": "arpe",

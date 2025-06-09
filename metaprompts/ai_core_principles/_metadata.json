@@ -1,0 +1,118 @@
+{
+  "category": "AI Core Principles",
+  "description": "Critical thinking enhancement frameworks that systematically improve decision-making and problem-solving. These principles challenge assumptions, demand evidence, and expand perspectives to reveal better solutions.",
+  "use_cases": [
+    "Decision analysis and validation",
+    "Assumption challenging and testing", 
+    "Stakeholder perspective analysis",
+    "Risk assessment and mitigation",
+    "Requirements clarification",
+    "Long-term impact evaluation"
+  ],
+  "strategies": [
+    {
+      "key": "assumption_detector",
+      "name": "Assumption Detector",
+      "description": "Systematically identifies and challenges hidden assumptions in requirements, constraints, and implementation approaches",
+      "best_for": ["Technical requirements", "System constraints", "Implementation planning"],
+      "triggers": ["assumption", "suppose", "expect", "given that"],
+      "output_focus": "Assumption validation and edge case discovery"
+    },
+    {
+      "key": "devils_advocate",
+      "name": "Devil's Advocate", 
+      "description": "Generates systematic counterarguments to test decision robustness and identify failure modes",
+      "best_for": ["High-stakes decisions", "Solution validation", "Risk assessment"],
+      "triggers": ["decision", "choice", "alternative", "vs"],
+      "output_focus": "Counterarguments and alternative approaches"
+    },
+    {
+      "key": "ripple_effect",
+      "name": "Ripple Effect Analyzer",
+      "description": "Traces cascading consequences of decisions across systems, teams, and time horizons",
+      "best_for": ["System changes", "Process modifications", "Impact assessment"],
+      "triggers": ["consequences", "impact", "effects", "ripple"],
+      "output_focus": "Cascading impacts and mitigation strategies"
+    },
+    {
+      "key": "perspective_multiplier", 
+      "name": "Perspective Multiplier",
+      "description": "Analyzes problems through multiple stakeholder lenses to reveal blind spots and conflicts",
+      "best_for": ["Multi-stakeholder systems", "User experience", "Team dynamics"],
+      "triggers": ["stakeholder", "perspective", "viewpoint", "different"],
+      "output_focus": "Multi-stakeholder analysis and conflict resolution"
+    },
+    {
+      "key": "evidence_seeker",
+      "name": "Evidence Seeker",
+      "description": "Demands concrete evidence and validation before accepting claims or making decisions",
+      "best_for": ["Claim validation", "Performance assertions", "Quality metrics"],
+      "triggers": ["evidence", "proof", "validate", "verify"],
+      "output_focus": "Evidence requirements and validation methods"
+    },
+    {
+      "key": "pattern_recognizer",
+      "name": "Pattern Recognizer",
+      "description": "Identifies recurring patterns, anti-patterns, and predictive indicators across systems",
+      "best_for": ["System analysis", "Troubleshooting", "Trend identification"],
+      "triggers": ["pattern", "similar", "recurring", "repeated"],
+      "output_focus": "Pattern analysis and predictive insights"
+    },
+    {
+      "key": "root_cause_analyzer",
+      "name": "Root Cause Analyzer", 
+      "description": "Systematically drills down to fundamental causes using 5 Whys, Fishbone, and systems thinking",
+      "best_for": ["Problem solving", "Issue investigation", "System failures"],
+      "triggers": ["why", "root cause", "underlying", "fundamental"],
+      "output_focus": "Root cause identification and systematic prevention"
+    },
+    {
+      "key": "constraint_identifier",
+      "name": "Constraint Identifier",
+      "description": "Maps explicit and hidden constraints to distinguish real limitations from assumed boundaries",
+      "best_for": ["Solution space expansion", "Innovation opportunities", "Resource optimization"],
+      "triggers": ["constraint", "limitation", "cannot", "impossible"],
+      "output_focus": "Constraint mapping and expansion opportunities"
+    },
+    {
+      "key": "paradox_navigator",
+      "name": "Paradox Navigator",
+      "description": "Resolves contradictory requirements through creative synthesis and both/and thinking",
+      "best_for": ["Conflicting requirements", "Trade-off resolution", "Innovation challenges"],
+      "triggers": ["paradox", "contradiction", "conflicting", "both"],
+      "output_focus": "Creative synthesis and paradox resolution"
+    },
+    {
+      "key": "tradeoff_tracker",
+      "name": "Tradeoff Tracker",
+      "description": "Makes all tradeoffs explicit including hidden costs like technical debt and opportunity costs",
+      "best_for": ["Decision optimization", "Cost-benefit analysis", "Resource allocation"],
+      "triggers": ["tradeoff", "sacrifice", "cost", "benefit"],
+      "output_focus": "Comprehensive tradeoff analysis and optimization"
+    },
+    {
+      "key": "context_expander",
+      "name": "Context Expander", 
+      "description": "Broadens frame of reference to prevent local optimization that creates broader problems",
+      "best_for": ["System-level thinking", "Strategic decisions", "Architecture choices"],
+      "triggers": ["context", "broader", "bigger picture", "system"],
+      "output_focus": "Expanded context and system-level optimization"
+    },
+    {
+      "key": "precision_questioner",
+      "name": "Precision Questioner",
+      "description": "Transforms vague requirements into precise, actionable specifications through systematic questioning",
+      "best_for": ["Requirement gathering", "Specification clarity", "Ambiguity resolution"],
+      "triggers": ["vague", "unclear", "ambiguous", "clarify"],
+      "output_focus": "Precise specifications and validation criteria"
+    },
+    {
+      "key": "time_capsule_test",
+      "name": "Time Capsule Test",
+      "description": "Projects decisions across multiple time horizons to assess durability and maintainability",
+      "best_for": ["Long-term planning", "Architecture decisions", "Technology choices"],
+      "triggers": ["future", "long-term", "maintainability", "legacy"],
+      "output_focus": "Temporal analysis and future-proofing strategies"
+    }
+  ]
+}

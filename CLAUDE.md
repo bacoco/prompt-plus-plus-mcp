@@ -45,33 +45,61 @@ This MCP server enables **Claude Code to self-enhance prompts** through a closed
 ### Core Components
 
 1. **Strategy Manager (`src/strategy-manager.ts`)**
-   - Loads metaprompt templates from JSON files
-   - Manages 10 different enhancement strategies
+   - Loads metaprompt templates from organized JSON directories
+   - Manages 44+ enhancement strategies across 5 categories
+   - Loads category metadata for intelligent strategy discovery
    - Type-safe strategy management
 
 2. **Prompt Refiner (`src/prompt-refiner.ts`)**
-   - Implements heuristic-based strategy selection
+   - Implements intelligent strategy selection with 44+ strategies
+   - Enhanced keyword matching for AI Core Principles and Vibe Coding Rules
    - Scores strategies based on prompt characteristics
    - Handles strategy comparison logic
 
 3. **MCP Server (`src/index.ts`)**
-   - Exposes MCP prompts for each strategy
+   - Exposes MCP prompts for each of 44+ strategies
    - Implements two-step refinement workflow
+   - Provides metadata-driven strategy discovery via `discover_strategies` tool
    - Built with official MCP TypeScript SDK
 
 ## Available MCP Prompts
 
-### Strategy-Specific Prompts
+### Strategy-Specific Prompts (44+ Available)
+
+**Core Strategies (10)**
 - `refine_with_star`: Comprehensive multi-stage refinement (ECHO method)
 - `refine_with_done`: Structured approach with role-playing
 - `refine_with_physics`: Balanced scientific analysis
 - `refine_with_morphosis`: Quick refinement for simple prompts
 - `refine_with_verse`: Technical prompt enhancement
 - `refine_with_math`: Mathematical and formal reasoning
-- `refine_with_phor`: Flexible technique combination
-- `refine_with_bolism`: Optimization-focused refinement
-- `refine_with_arpe`: Advanced reasoning and proofs
-- `refine_with_touille`: General-purpose refinement
+- Plus 4 more...
+
+**AI Core Principles (13)**
+- `refine_with_assumption_detector`: Challenge hidden assumptions
+- `refine_with_devils_advocate`: Generate systematic counterarguments
+- `refine_with_ripple_effect`: Analyze cascading consequences
+- `refine_with_evidence_seeker`: Demand concrete validation
+- Plus 9 more critical thinking frameworks...
+
+**Vibe Coding Rules (11)**
+- `refine_with_write_tests_first`: TDD workflow optimization
+- `refine_with_use_agent_mode`: AI-assisted development patterns
+- `refine_with_ship_small_changes`: Incremental delivery strategies
+- `refine_with_refactor_continuously`: Ongoing code improvement
+- Plus 7 more development workflow patterns...
+
+**Software Development (4)**
+- `refine_with_architect`: System design and architecture
+- `refine_with_reviewer`: Code review and QA frameworks
+- `refine_with_devops`: CI/CD and infrastructure automation
+- `refine_with_boomerang`: Iterative development cycles
+
+**Advanced Thinking (6)**
+- `refine_with_quantum`: Parallel possibility exploration
+- `refine_with_synthesis`: Creative concept fusion
+- `refine_with_temporal`: Multi-timeline analysis
+- Plus 3 more sophisticated reasoning frameworks...
 
 ### Special Prompts
 - `auto_refine`: Automatically selects best strategy and refines
@@ -81,8 +109,9 @@ This MCP server enables **Claude Code to self-enhance prompts** through a closed
 - `prepare_refinement`: Step 1 - Analyzes user prompt and returns metaprompt execution instructions
 - `execute_refinement`: Step 2 - Processes metaprompt results and returns final refined prompt
 
-### Support Tools
-- `list_strategies`: Lists all available strategies
+### Support Tools  
+- `discover_strategies`: **NEW** - Get comprehensive metadata about all strategy categories for intelligent selection
+- `list_strategies`: Lists all available strategies with basic info
 - `get_strategy_details`: Gets details about a specific strategy
 
 ## Usage Examples
@@ -96,8 +125,8 @@ When Claude Code uses the original workflow:
 4. **Claude**: Internally processes the meta-prompt
 5. **Result**: Enhanced prompt with clear requirements, examples, and structure
 
-### Two-Step Workflow (New)
-When Claude Code uses the new two-step workflow:
+### Two-Step Workflow (Recommended)
+When Claude Code uses the two-step workflow:
 
 1. **User**: "Refine my prompt: Write a Python function"
 2. **Claude**: Uses `prepare_refinement` prompt with the user's input
@@ -106,6 +135,17 @@ When Claude Code uses the new two-step workflow:
 5. **Claude**: Uses `execute_refinement` prompt with the metaprompt results
 6. **MCP Server**: Returns final refined prompt with improvements summary
 7. **Result**: Clean, polished prompt ready for execution
+
+### Enhanced Metadata-Driven Workflow (New)
+When Claude Code uses intelligent strategy discovery:
+
+1. **User**: "I need help with a complex decision about microservices"
+2. **Claude**: Uses `discover_strategies` tool to get all strategy metadata
+3. **MCP Server**: Returns comprehensive category descriptions and strategy details
+4. **Claude**: Analyzes metadata and selects `refine_with_devils_advocate` based on decision-making context
+5. **Claude**: Uses selected strategy prompt
+6. **MCP Server**: Returns targeted refinement using Devil's Advocate methodology
+7. **Result**: Systematically enhanced prompt with counterarguments and risk analysis
 
 ## Workflow Benefits
 
