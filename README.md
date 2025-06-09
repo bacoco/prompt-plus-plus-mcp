@@ -34,11 +34,23 @@ Add to your `claude_desktop_config.json`:
 ### Claude Code
 Works automatically once installed globally.
 
-## 🧠 How It Works
+## 🧠 How It Works: The Core Principle
 
-For a detailed explanation of the process with examples, see **[PROCESS_EXPLANATION.md](./PROCESS_EXPLANATION.md)**.
+> **The MCP server ONLY provides prompt templates and metadata. The LLM (Claude) makes ALL decisions about which strategy to use.**
 
-**Key Principle**: The MCP server only provides strategy templates and metadata. The LLM makes ALL decisions about which strategy to use based on prompt analysis.
+This is a **Meta-Prompt Server** - it doesn't enhance prompts directly. Instead, it provides the LLM with:
+1. All available strategy templates and metadata
+2. Instructions for the LLM to analyze and select
+3. The framework for the LLM to apply enhancements
+
+```mermaid
+graph TD
+    A[User Prompt] --> B[MCP Server]
+    B --> C[Present All Strategies to LLM]
+    C --> D[LLM Analyzes & Selects]
+    D --> E[LLM Applies Selected Strategy]
+    E --> F[Enhanced Prompt]
+```
 
 ## 🎯 What Actually Happens: Step-by-Step Example
 
@@ -49,18 +61,74 @@ Let's walk through what happens when you use Prompt++ to refine a prompt:
 **Your Original Prompt**: `"Write a function to process user data"`
 
 ### Option 1: Auto-Refinement (Fastest)
+
+**Step 1: You ask Claude:**
 ```
 Use auto_refine prompt with user_prompt: "Write a function to process user data"
 ```
 
-**What happens behind the scenes:**
-1. **Analysis**: Prompt contains keywords "function", "process", "data" → detected as technical/coding
-2. **Strategy Selection**: Algorithm selects "boomerang" (iterative development) with 92% confidence
-3. **Enhancement**: Applies Boomerang metaprompt template
-4. **Result**: Enhanced prompt with error handling, input validation, tests, and documentation requirements
-
-**Your Enhanced Prompt**:
+**Step 2: MCP Server sends to Claude:**
 ```
+You are an expert prompt engineer. Your task is to analyze the user's prompt and select the most appropriate strategy from all available options, then apply it.
+
+**User's Prompt:** Write a function to process user data
+
+**Available Strategy Categories & Options:**
+{
+  "core_strategies": {
+    "category": "Core Strategies",
+    "description": "Fundamental prompt enhancement approaches",
+    "strategies": {
+      "star": {
+        "name": "ECHO Prompt", 
+        "description": "Comprehensive multi-stage refinement",
+        "best_for": ["complex tasks", "creative work"],
+        "complexity": "high"
+      },
+      "done": {
+        "name": "Done Prompt",
+        "description": "Structured approach with role-playing",
+        "best_for": ["general tasks", "business problems"],
+        "complexity": "medium"
+      },
+      // ... 8 more strategies
+    }
+  },
+  "software_development": {
+    "category": "Software Development",
+    "description": "Code and system design focused strategies",
+    "strategies": {
+      "boomerang": {
+        "name": "Boomerang Development",
+        "description": "Iterative development with testing cycles",
+        "best_for": ["api development", "feature implementation"],
+        "triggers": ["iterative", "testing", "development"],
+        "complexity": "medium"
+      },
+      // ... 3 more strategies
+    }
+  },
+  // ... 3 more categories with 30+ more strategies
+}
+
+**Your Process:**
+1. Analyze the user's prompt
+2. Review all available strategies
+3. Select the most appropriate strategy
+4. Apply the selected strategy
+```
+
+**Step 3: Claude (the LLM) Analyzes and Responds:**
+```
+SELECTED STRATEGY: boomerang (software_development)
+
+REASONING: The user wants to implement a specific algorithm. The Boomerang Development strategy is optimal because:
+- It focuses on iterative development with testing
+- Perfect for algorithm implementation
+- Includes performance considerations
+- Emphasizes clean, testable code
+
+REFINED PROMPT:
 Create a robust data processing function with the following specifications:
 
 **Core Requirements:**
@@ -90,14 +158,30 @@ Create a robust data processing function with the following specifications:
 - Follow existing code patterns in the project
 - Use consistent naming conventions
 - Implement defensive programming practices
+
+KEY IMPROVEMENTS:
+- Added specific implementation requirements
+- Included performance optimization needs
+- Specified testing requirements
+- Added code quality standards
+- Defined clear deliverables
 ```
 
 ### Option 2: 3-Step Intelligent Workflow (Most Precise)
+
+This workflow gives the LLM maximum control at each decision point:
 
 #### Step 1: Category Selection
 ```
 Use step1_get_categories prompt with user_prompt: "Write a function to process user data"
 ```
+
+**MCP Server provides all 5 categories to Claude:**
+- Core Strategies (10 strategies)
+- Software Development (4 strategies)
+- AI Core Principles (13 strategies)
+- Vibe Coding Rules (11 strategies)
+- Advanced Thinking (6 strategies)
 
 **Claude analyzes and responds:**
 ```json
@@ -113,7 +197,13 @@ Use step1_get_categories prompt with user_prompt: "Write a function to process u
 Use step2_get_strategies prompt with category_name: "software_development" and user_prompt: "Write a function to process user data"
 ```
 
-**Claude reviews software development strategies and responds:**
+**MCP Server provides all Software Development strategies to Claude:**
+- architect: System design and architecture
+- boomerang: Iterative development with testing cycles
+- reviewer: Code review and QA frameworks
+- devops: CI/CD and infrastructure automation
+
+**Claude reviews and responds:**
 ```json
 {
   "selected_strategy": "boomerang",
@@ -128,7 +218,7 @@ Use step2_get_strategies prompt with category_name: "software_development" and u
 Use step3_execute_strategy prompt with strategy_key: "boomerang" and user_prompt: "Write a function to process user data"
 ```
 
-**Final Enhanced Prompt** (similar to auto-refine but with more precise targeting):
+**MCP Server provides the boomerang template to Claude, who applies it to create:**
 ```
 REFINED PROMPT:
 Design and implement a data processing function using iterative development methodology:
@@ -165,6 +255,88 @@ KEY IMPROVEMENTS:
 
 STRATEGY APPLIED: Boomerang Development
 ```
+
+## 🔑 Key Differences from Traditional Approaches
+
+### ❌ OLD (Hardcoded) Approach:
+```python
+# Server code that made decisions
+if "fibonacci" in prompt or "algorithm" in prompt:
+    return "boomerang"  # Server decided!
+elif "decision" in prompt:
+    return "devils_advocate"  # Server decided!
+```
+
+### ✅ NEW (LLM-Driven) Approach:
+```python
+# Server only provides data
+return {
+    "all_strategies": get_all_strategies(),
+    "instruction": "You analyze and decide"
+}
+# LLM makes the decision!
+```
+
+## 🎬 Real-World Process Examples
+
+### Example 1: Complex Technical Task
+
+**User Prompt:** `"Build a real-time chat system with websockets"`
+
+**Process:**
+
+1. **MCP Server Action:**
+   - Loads metadata for all 44+ strategies
+   - Formats them with descriptions, use cases, complexity
+   - Sends everything to Claude
+
+2. **Claude's Analysis:**
+   ```
+   Analyzing prompt characteristics:
+   - Domain: Software development
+   - Type: System implementation
+   - Complexity: High
+   - Key aspects: real-time, networking, architecture
+   
+   Reviewing all strategies...
+   
+   Best matches:
+   - architect: System design focus ✓
+   - boomerang: Iterative development ✓
+   - devops: Infrastructure needs ✓
+   ```
+
+3. **Claude's Selection:**
+   ```
+   SELECTED: architect
+   REASON: Building a real-time system requires careful architectural planning
+   ```
+
+4. **Claude's Enhancement:**
+   Applies architect methodology to create comprehensive system design prompt with scalability, security, and performance considerations
+
+### Example 2: Decision Making Task
+
+**User Prompt:** `"I need to make a difficult decision about our product roadmap"`
+
+**What Claude Does:**
+
+1. **Step 1**: Reviews all 5 categories, selects "AI Core Principles" for its decision-making frameworks
+2. **Step 2**: From 13 AI Core Principles, selects "devils_advocate" for systematic analysis
+3. **Step 3**: Applies Devil's Advocate methodology to create comprehensive decision framework
+
+### Example 3: Compare Multiple Strategies
+
+**User:** `"Help me optimize database queries"`
+
+**MCP Server:** Presents ALL strategies to Claude
+
+**Claude independently selects 3-5 relevant ones:**
+- boomerang (iterative optimization)
+- reviewer (performance review)
+- pattern_recognizer (identify optimization patterns)
+
+Then compares their approaches and provides multiple refinement options.
 
 ## 📚 All 44+ Available Strategies
 
@@ -230,6 +402,48 @@ AI-assisted development patterns:
 - **Refactor Continuously** → Ongoing improvement
 - **Document Intent** → Focus on why, not how
 
+## 💡 Common Patterns & LLM Selection Behavior
+
+### Technical Tasks
+- Claude often selects from Software Development category
+- Frequently chooses: boomerang, architect, reviewer
+
+### Decision Making
+- Claude gravitates toward AI Core Principles
+- Common picks: devils_advocate, tradeoff_tracker, ripple_effect
+
+### Creative Work
+- Claude selects from Core Strategies or Advanced Thinking
+- Popular choices: star, synthesis, quantum
+
+### Quick Tasks
+- Claude identifies simplicity need
+- Often selects: morphosis, done
+
+## 🏗️ Architecture & Performance
+
+### 🎯 How the LLM Selects Strategies
+The MCP server provides rich metadata that Claude uses for selection:
+- **Keywords**: 50+ trigger patterns across domains
+- **Complexity**: Task complexity indicators
+- **Domain**: Technical, creative, analytical, mathematical
+- **Best For**: Specific use case recommendations
+- **Examples**: Sample prompts for pattern matching
+
+### ⚡ Performance Features
+- **Sub-millisecond Selection**: Optimized matching algorithms
+- **Intelligent Caching**: 10-minute TTL with automatic cleanup
+- **Hot Reloading**: File watcher for development
+- **Memory Efficient**: Resource cleanup and monitoring
+- **Graceful Degradation**: Fallback strategies on failures
+
+### 🛡️ Enterprise Grade
+- **Structured Logging**: Environment-aware with context
+- **Health Monitoring**: Built-in diagnostics and metrics
+- **Error Boundaries**: Comprehensive exception handling
+- **Type Safety**: Strong TypeScript throughout
+- **Resource Management**: Proper cleanup and shutdown
+
 ## 🔧 Advanced Usage
 
 ### Performance Monitoring
@@ -251,29 +465,6 @@ Use discover_strategies tool
 ```
 Use compare_refinements prompt with user_prompt: "your prompt" and strategies: "star,physics,boomerang"
 ```
-
-## 🏗️ Architecture & Performance
-
-### 🎯 Intelligent Selection Algorithm
-- **Keyword Analysis**: 50+ trigger patterns across domains
-- **Complexity Assessment**: Automatic word count and structure analysis
-- **Domain Detection**: Technical, creative, analytical, mathematical
-- **Confidence Scoring**: 0-100 suitability ratings
-- **Fallback Strategies**: Graceful degradation on errors
-
-### ⚡ Performance Features
-- **Sub-millisecond Selection**: Optimized matching algorithms
-- **Intelligent Caching**: 10-minute TTL with automatic cleanup
-- **Hot Reloading**: File watcher for development
-- **Memory Efficient**: Resource cleanup and monitoring
-- **Graceful Degradation**: Fallback strategies on failures
-
-### 🛡️ Enterprise Grade
-- **Structured Logging**: Environment-aware with context
-- **Health Monitoring**: Built-in diagnostics and metrics
-- **Error Boundaries**: Comprehensive exception handling
-- **Type Safety**: Strong TypeScript throughout
-- **Resource Management**: Proper cleanup and shutdown
 
 ## 📁 Project Structure
 
@@ -329,6 +520,25 @@ We welcome contributions! Areas where you can help:
 - **Memory Usage**: <10MB baseline, <50MB peak
 - **Cache Hit Rate**: 90%+ in typical development workflow
 - **Error Recovery**: <100ms fallback to safe defaults
+
+## 🎯 Summary: The Core Concept
+
+The Prompt++ MCP server is a **pure data provider**. It:
+- ✅ Loads strategy templates and metadata
+- ✅ Presents all options to the LLM
+- ✅ Provides structured prompts for LLM to process
+- ❌ Does NOT make selection decisions
+- ❌ Does NOT analyze prompts
+- ❌ Does NOT score strategies
+
+The LLM (Claude) is the **intelligent decision maker**. It:
+- ✅ Analyzes the user's prompt
+- ✅ Reviews all available strategies
+- ✅ Selects the best match
+- ✅ Applies the strategy methodology
+- ✅ Explains its reasoning
+
+This separation ensures the system leverages the LLM's intelligence rather than relying on rigid keyword matching.
 
 ## 📄 License
 
