@@ -14,9 +14,40 @@ npm run dev
 npm run build
 npm start
 
-# Global installation
+# Option 1: Using npx (recommended for Claude Desktop)
+npx -y prompt-plus-plus-mcp
+
+# Option 2: Global installation
 npm install -g prompt-plus-plus-mcp
 prompt-plus-plus-mcp
+```
+
+### Claude Desktop Configuration
+
+**Option 1: Using npx (Recommended)**
+```json
+{
+  "mcpServers": {
+    "prompt-plus-plus": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "prompt-plus-plus-mcp"
+      ]
+    }
+  }
+}
+```
+
+**Option 2: Global Installation**
+```json
+{
+  "mcpServers": {
+    "prompt-plus-plus": {
+      "command": "prompt-plus-plus-mcp"
+    }
+  }
+}
 ```
 
 ### Testing

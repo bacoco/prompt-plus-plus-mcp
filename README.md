@@ -16,13 +16,33 @@ An advanced MCP (Model Context Protocol) server that intelligently enhances prom
 
 ## 📦 Quick Start
 
-### Installation
+### Installation Options
+
+#### Option 1: Using npx (Recommended)
+No installation needed! Configure Claude Desktop to use npx:
+
+**Claude Desktop Configuration:**
+Add to your `claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "prompt-plus-plus": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "prompt-plus-plus-mcp"
+      ]
+    }
+  }
+}
+```
+
+#### Option 2: Global Installation
 ```bash
 npm install -g prompt-plus-plus-mcp
 ```
 
-### Claude Desktop Configuration
-Add to your `claude_desktop_config.json`:
+**Claude Desktop Configuration:**
 ```json
 {
   "mcpServers": {
@@ -34,7 +54,7 @@ Add to your `claude_desktop_config.json`:
 ```
 
 ### Claude Code
-Works automatically once installed globally.
+Works automatically with either approach.
 
 ## 🧠 How It Works: The Core Principle
 
