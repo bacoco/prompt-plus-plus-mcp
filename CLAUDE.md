@@ -1,251 +1,244 @@
-# CLAUDE.md
+# Claude Code Configuration - SPARC Development Environment
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## Project Overview
+This project uses the SPARC (Specification, Pseudocode, Architecture, Refinement, Completion) methodology for systematic Test-Driven Development with AI assistance through Claude-Flow orchestration.
 
-## Commands
+## SPARC Development Commands
 
-### Running the MCP Server
+### Core SPARC Commands
+- `npx claude-flow sparc modes`: List all available SPARC development modes
+- `npx claude-flow sparc run <mode> "<task>"`: Execute specific SPARC mode for a task
+- `npx claude-flow sparc tdd "<feature>"`: Run complete TDD workflow using SPARC methodology
+- `npx claude-flow sparc info <mode>`: Get detailed information about a specific mode
 
+### Standard Build Commands
+- `npm run build`: Build the project
+- `npm run test`: Run the test suite
+- `npm run lint`: Run linter and format checks
+- `npm run typecheck`: Run TypeScript type checking
+
+## SPARC Methodology Workflow
+
+### 1. Specification Phase
 ```bash
-# Development mode
-npm run dev
-
-# Production mode
-npm run build
-npm start
-
-# Option 1: Using npx (recommended for Claude Desktop)
-npx -y prompt-plus-plus-mcp
-
-# Option 2: Global installation
-npm install -g prompt-plus-plus-mcp
-prompt-plus-plus-mcp
+# Create detailed specifications and requirements
+npx claude-flow sparc run spec-pseudocode "Define user authentication requirements"
 ```
+- Define clear functional requirements
+- Document edge cases and constraints
+- Create user stories and acceptance criteria
+- Establish non-functional requirements
 
-### Claude Desktop Configuration
-
-**Option 1: Using npx (Recommended)**
-```json
-{
-  "mcpServers": {
-    "prompt-plus-plus": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "prompt-plus-plus-mcp"
-      ]
-    }
-  }
-}
-```
-
-**Option 2: Global Installation**
-```json
-{
-  "mcpServers": {
-    "prompt-plus-plus": {
-      "command": "prompt-plus-plus-mcp"
-    }
-  }
-}
-```
-
-### Testing
-
+### 2. Pseudocode Phase
 ```bash
-# Install dependencies
-npm install
+# Develop algorithmic logic and data flows
+npx claude-flow sparc run spec-pseudocode "Create authentication flow pseudocode"
+```
+- Break down complex logic into steps
+- Define data structures and interfaces
+- Plan error handling and edge cases
+- Create modular, testable components
 
-# Build and test
-npm run build
+### 3. Architecture Phase
+```bash
+# Design system architecture and component structure
+npx claude-flow sparc run architect "Design authentication service architecture"
+```
+- Create system diagrams and component relationships
+- Define API contracts and interfaces
+- Plan database schemas and data flows
+- Establish security and scalability patterns
 
-# Run in development mode to test
-npm run dev
+### 4. Refinement Phase (TDD Implementation)
+```bash
+# Execute Test-Driven Development cycle
+npx claude-flow sparc tdd "implement user authentication system"
 ```
 
-## Architecture: Closed-Loop Meta-Prompting
+**TDD Cycle:**
+1. **Red**: Write failing tests first
+2. **Green**: Implement minimal code to pass tests
+3. **Refactor**: Optimize and clean up code
+4. **Repeat**: Continue until feature is complete
 
-This MCP server enables **Claude Code to self-enhance prompts** through a closed-loop meta-prompting system. No external APIs or manual copying required.
+### 5. Completion Phase
+```bash
+# Integration, documentation, and validation
+npx claude-flow sparc run integration "integrate authentication with user management"
+```
+- Integrate all components
+- Perform end-to-end testing
+- Create comprehensive documentation
+- Validate against original requirements
 
-### How It Works
+## SPARC Mode Reference
 
-1. **MCP Prompts**: The server exposes prompts (not tools) that Claude can execute internally
-2. **Meta-Processing**: Claude processes the meta-prompts to generate refined versions
-3. **Zero-Copy Workflow**: Everything happens within Claude's execution context
+### Development Modes
+- **`architect`**: System design and architecture planning
+- **`code`**: Clean, modular code implementation
+- **`tdd`**: Test-driven development and testing
+- **`spec-pseudocode`**: Requirements and algorithmic planning
+- **`integration`**: System integration and coordination
 
-### Core Components
+### Quality Assurance Modes
+- **`debug`**: Troubleshooting and bug resolution
+- **`security-review`**: Security analysis and vulnerability assessment
+- **`refinement-optimization-mode`**: Performance optimization and refactoring
 
-1. **Strategy Manager (`src/strategy-manager.ts`)**
-   - Loads metaprompt templates from organized JSON directories
-   - Manages 44+ enhancement strategies across 5 categories
-   - Loads category metadata for intelligent strategy discovery
-   - Type-safe strategy management
+### Support Modes
+- **`docs-writer`**: Documentation creation and maintenance
+- **`devops`**: Deployment and infrastructure management
+- **`mcp`**: External service integration
 
-2. **Prompt Refiner (`src/prompt-refiner.ts`)**
-   - Implements intelligent strategy selection with 44+ strategies
-   - Enhanced keyword matching for AI Core Principles and Vibe Coding Rules
-   - Scores strategies based on prompt characteristics
-   - Handles strategy comparison logic
+## Code Style and Best Practices
 
-3. **MCP Server (`src/index.ts`)**
-   - Exposes MCP prompts for each of 44+ strategies
-   - Implements two-step refinement workflow
-   - Provides metadata-driven strategy discovery via `discover_strategies` tool
-   - Built with official MCP TypeScript SDK
+### SPARC Development Principles
+- **Modular Design**: Keep files under 500 lines, break into logical components
+- **Environment Safety**: Never hardcode secrets or environment-specific values
+- **Test-First**: Always write tests before implementation (Red-Green-Refactor)
+- **Clean Architecture**: Separate concerns, use dependency injection
+- **Documentation**: Maintain clear, up-to-date documentation
 
-## Available MCP Prompts
+### Coding Standards
+- Use TypeScript for type safety and better tooling
+- Follow consistent naming conventions (camelCase for variables, PascalCase for classes)
+- Implement proper error handling and logging
+- Use async/await for asynchronous operations
+- Prefer composition over inheritance
 
-### Strategy-Specific Prompts (44+ Available)
+### Memory and State Management
+- Use claude-flow memory system for persistent state across sessions
+- Store progress and findings using namespaced keys
+- Query previous work before starting new tasks
+- Export/import memory for backup and sharing
 
-**Core Strategies (10)**
-- `refine_with_star`: Comprehensive multi-stage refinement (ECHO method)
-- `refine_with_done`: Structured approach with role-playing
-- `refine_with_physics`: Balanced scientific analysis
-- `refine_with_morphosis`: Quick refinement for simple prompts
-- `refine_with_verse`: Technical prompt enhancement
-- `refine_with_math`: Mathematical and formal reasoning
-- Plus 4 more...
+## SPARC Memory Integration
 
-**AI Core Principles (13)**
-- `refine_with_assumption_detector`: Challenge hidden assumptions
-- `refine_with_devils_advocate`: Generate systematic counterarguments
-- `refine_with_ripple_effect`: Analyze cascading consequences
-- `refine_with_evidence_seeker`: Demand concrete validation
-- Plus 9 more critical thinking frameworks...
+### Memory Commands for SPARC Development
+```bash
+# Store project specifications
+npx claude-flow memory store spec_auth "User authentication requirements and constraints"
 
-**Vibe Coding Rules (11)**
-- `refine_with_write_tests_first`: TDD workflow optimization
-- `refine_with_use_agent_mode`: AI-assisted development patterns
-- `refine_with_ship_small_changes`: Incremental delivery strategies
-- `refine_with_refactor_continuously`: Ongoing code improvement
-- Plus 7 more development workflow patterns...
+# Store architectural decisions
+npx claude-flow memory store arch_decisions "Database schema and API design choices"
 
-**Software Development (4)**
-- `refine_with_architect`: System design and architecture
-- `refine_with_reviewer`: Code review and QA frameworks
-- `refine_with_devops`: CI/CD and infrastructure automation
-- `refine_with_boomerang`: Iterative development cycles
+# Store test results and coverage
+npx claude-flow memory store test_coverage "Authentication module: 95% coverage, all tests passing"
 
-**Advanced Thinking (6)**
-- `refine_with_quantum`: Parallel possibility exploration
-- `refine_with_synthesis`: Creative concept fusion
-- `refine_with_temporal`: Multi-timeline analysis
-- Plus 3 more sophisticated reasoning frameworks...
+# Query previous work
+npx claude-flow memory query auth_implementation
 
-### Special Prompts
-- `auto_refine`: Automatically selects best strategy and refines
-- `compare_refinements`: Compares multiple strategies for a prompt
-
-### Two-Step Workflow Prompts
-- `prepare_refinement`: Step 1 - Analyzes user prompt and returns metaprompt execution instructions
-- `execute_refinement`: Step 2 - Processes metaprompt results and returns final refined prompt
-
-### Support Tools  
-- `discover_strategies`: **NEW** - Get comprehensive metadata about all strategy categories for intelligent selection
-- `list_strategies`: Lists all available strategies with basic info
-- `get_strategy_details`: Gets details about a specific strategy
-
-## Usage Examples
-
-### One-Step Workflow (Original)
-When Claude Code uses the original workflow:
-
-1. **User**: "Refine my prompt: Write a Python function"
-2. **Claude**: Uses `auto_refine` prompt with the user's input
-3. **MCP Server**: Returns meta-prompt with best strategy
-4. **Claude**: Internally processes the meta-prompt
-5. **Result**: Enhanced prompt with clear requirements, examples, and structure
-
-### Two-Step Workflow (Recommended)
-When Claude Code uses the two-step workflow:
-
-1. **User**: "Refine my prompt: Write a Python function"
-2. **Claude**: Uses `prepare_refinement` prompt with the user's input
-3. **MCP Server**: Returns metaprompt execution instructions and selected strategy
-4. **Claude**: Executes the metaprompt internally
-5. **Claude**: Uses `execute_refinement` prompt with the metaprompt results
-6. **MCP Server**: Returns final refined prompt with improvements summary
-7. **Result**: Clean, polished prompt ready for execution
-
-### Enhanced Metadata-Driven Workflow (New)
-When Claude Code uses intelligent strategy discovery:
-
-1. **User**: "I need help with a complex decision about microservices"
-2. **Claude**: Uses `discover_strategies` tool to get all strategy metadata
-3. **MCP Server**: Returns comprehensive category descriptions and strategy details
-4. **Claude**: Analyzes metadata and selects `refine_with_devils_advocate` based on decision-making context
-5. **Claude**: Uses selected strategy prompt
-6. **MCP Server**: Returns targeted refinement using Devil's Advocate methodology
-7. **Result**: Systematically enhanced prompt with counterarguments and risk analysis
-
-### **NEW: 3-Step Intelligent Workflow (Recommended)**
-The most intelligent and precise workflow with automatic LLM-guided selection:
-
-1. **User**: "Refine my prompt: Create a microservices architecture for an e-commerce platform"
-2. **Claude**: Uses `step1_get_categories` prompt with user's input
-3. **MCP Server**: Returns all strategy categories with descriptions and use cases
-4. **Claude**: Analyzes categories and selects "Software Development" based on the architectural context
-5. **Claude**: Uses `step2_get_strategies` prompt with selected category and user's input
-6. **MCP Server**: Returns all strategies from Software Development category with detailed metadata
-7. **Claude**: Analyzes strategies and selects "architect" for system design focus
-8. **Claude**: Uses `step3_execute_strategy` prompt with selected strategy and user's input
-9. **MCP Server**: Returns the refined prompt using the Architect methodology
-10. **Result**: Precisely targeted architectural prompt with system design considerations
-
-## Workflow Benefits
-
-### One-Step Workflow
-- **No Manual Steps**: Everything automated within Claude
-- **Context Preservation**: Full conversation context maintained
-- **Strategy Intelligence**: Automatic selection based on prompt type
-- **Iterative Enhancement**: Can refine multiple times with different strategies
-
-### Two-Step Workflow
-- **Explicit Control**: Claude Code has explicit control over each step
-- **Transparent Process**: Clear visibility into strategy selection and metaprompt execution
-- **Flexible Execution**: Can inspect metaprompt before execution or modify approach
-- **Cleaner Output**: Final step produces polished, ready-to-use prompts
-- **Better Error Handling**: Can catch and handle issues at each step independently
-
-### **3-Step Workflow (NEW - RECOMMENDED)**
-- **Maximum Precision**: LLM analyzes and selects at each decision point
-- **Intelligent Category Selection**: Reviews all 5 categories to find best fit
-- **Optimal Strategy Matching**: Examines specific strategies within chosen category
-- **No Manual Selection**: LLM makes informed choices based on prompt analysis
-- **Transparent Decision Making**: Clear reasoning at each step
-- **Best Strategy Fit**: Ensures most appropriate enhancement methodology is applied
-
-## Adding New Strategies
-
-Create a JSON file in `metaprompts/`:
-```json
-{
-  "name": "Strategy Name",
-  "description": "When to use this strategy",
-  "examples": ["Example prompt 1", "Example prompt 2"],
-  "template": "Meta-prompt template with [Insert initial prompt here] placeholder"
-}
+# Export project memory
+npx claude-flow memory export project_backup.json
 ```
 
-The server automatically creates a corresponding MCP prompt: `refine_with_[filename]`
+### Memory Namespaces
+- **`spec`**: Requirements and specifications
+- **`arch`**: Architecture and design decisions
+- **`impl`**: Implementation notes and code patterns
+- **`test`**: Test results and coverage reports
+- **`debug`**: Bug reports and resolution notes
 
-## Technical Details
+## Workflow Examples
 
-### Prompt Message Format
-The server returns `PromptMessage` objects containing:
-- Instructions for Claude to act as a prompt engineer
-- The selected meta-prompt template
-- Expected JSON response format
-- Context about why the strategy was chosen
+### Feature Development Workflow
+```bash
+# 1. Start with specification
+npx claude-flow sparc run spec-pseudocode "User profile management feature"
 
-### Heuristic Selection
-Strategy selection based on:
-- Keywords (creative, technical, mathematical)
-- Prompt length (word count)
-- Domain detection (code, analysis, narrative)
-- Complexity assessment
+# 2. Design architecture
+npx claude-flow sparc run architect "Profile service architecture with data validation"
 
-### No External Dependencies
-- Removed all HuggingFace/API requirements
-- Pure Python with MCP SDK only
-- All processing happens within Claude's runtime
+# 3. Implement with TDD
+npx claude-flow sparc tdd "user profile CRUD operations"
+
+# 4. Security review
+npx claude-flow sparc run security-review "profile data access and validation"
+
+# 5. Integration testing
+npx claude-flow sparc run integration "profile service with authentication system"
+
+# 6. Documentation
+npx claude-flow sparc run docs-writer "profile service API documentation"
+```
+
+### Bug Fix Workflow
+```bash
+# 1. Debug and analyze
+npx claude-flow sparc run debug "authentication token expiration issue"
+
+# 2. Write regression tests
+npx claude-flow sparc run tdd "token refresh mechanism tests"
+
+# 3. Implement fix
+npx claude-flow sparc run code "fix token refresh in authentication service"
+
+# 4. Security review
+npx claude-flow sparc run security-review "token handling security implications"
+```
+
+## Configuration Files
+
+### SPARC Configuration
+- **`.roomodes`**: SPARC mode definitions and configurations
+- **`.roo/`**: Templates, workflows, and mode-specific rules
+
+### Claude-Flow Configuration
+- **`memory/`**: Persistent memory and session data
+- **`coordination/`**: Multi-agent coordination settings
+
+## Git Workflow Integration
+
+### Commit Strategy with SPARC
+- **Specification commits**: After completing requirements analysis
+- **Architecture commits**: After design phase completion
+- **TDD commits**: After each Red-Green-Refactor cycle
+- **Integration commits**: After successful component integration
+- **Documentation commits**: After completing documentation updates
+
+### Branch Strategy
+- **`feature/sparc-<feature-name>`**: Feature development with SPARC methodology
+- **`hotfix/sparc-<issue>`**: Bug fixes using SPARC debugging workflow
+- **`refactor/sparc-<component>`**: Refactoring using optimization mode
+
+## Troubleshooting
+
+### Common SPARC Issues
+- **Mode not found**: Check `.roomodes` file exists and is valid JSON
+- **Memory persistence**: Ensure `memory/` directory has write permissions
+- **Tool access**: Verify required tools are available for the selected mode
+- **Namespace conflicts**: Use unique memory namespaces for different features
+
+### Debug Commands
+```bash
+# Check SPARC configuration
+npx claude-flow sparc modes
+
+# Verify memory system
+npx claude-flow memory stats
+
+# Check system status
+npx claude-flow status
+
+# View detailed mode information
+npx claude-flow sparc info <mode-name>
+```
+
+## Project Architecture
+
+This SPARC-enabled project follows a systematic development approach:
+- **Clear separation of concerns** through modular design
+- **Test-driven development** ensuring reliability and maintainability
+- **Iterative refinement** for continuous improvement
+- **Comprehensive documentation** for team collaboration
+- **AI-assisted development** through specialized SPARC modes
+
+## Important Notes
+
+- Always run tests before committing (`npm run test`)
+- Use SPARC memory system to maintain context across sessions
+- Follow the Red-Green-Refactor cycle during TDD phases
+- Document architectural decisions in memory for future reference
+- Regular security reviews for any authentication or data handling code
+
+For more information about SPARC methodology, see: https://github.com/ruvnet/claude-code-flow/docs/sparc.md

@@ -145,3 +145,17 @@ dist/
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Claude-flow and SPARC development files
+.roo/
+.roomodes
+claude-flow
+coordination.md
+memory/
+memory-bank.md
+
+# Test suite (temporary)
+mcp-test-suite/
+
+# Workflow files
+mcp-analysis-workflow.json
