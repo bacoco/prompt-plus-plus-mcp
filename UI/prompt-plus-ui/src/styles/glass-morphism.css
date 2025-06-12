@@ -1,0 +1,304 @@
+/* Apple Glass Liquid Design System */
+
+/* CSS Variables for Glass Effect */
+:root {
+  /* Light mode glass variables */
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.3);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  --glass-blur: 12px;
+  --glass-saturate: 180%;
+  
+  /* Liquid gradient colors */
+  --liquid-primary: rgba(94, 114, 235, 0.15);
+  --liquid-secondary: rgba(142, 94, 235, 0.15);
+  --liquid-accent: rgba(235, 94, 162, 0.15);
+  
+  /* Animation variables */
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --hover-scale: 1.02;
+  --active-scale: 0.98;
+}
+
+/* Dark mode glass variables */
+.dark {
+  --glass-bg: rgba(30, 30, 40, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+  --liquid-primary: rgba(94, 114, 235, 0.25);
+  --liquid-secondary: rgba(142, 94, 235, 0.25);
+  --liquid-accent: rgba(235, 94, 162, 0.25);
+}
+
+/* Base Glass Component */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  transition: var(--transition-smooth);
+}
+
+/* Glass Card */
+.glass-card {
+  @apply glass rounded-2xl p-6;
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle,
+    var(--liquid-primary) 0%,
+    var(--liquid-secondary) 40%,
+    transparent 70%
+  );
+  animation: liquid-rotate 20s linear infinite;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Liquid Button */
+.liquid-button {
+  @apply glass px-6 py-3 rounded-xl font-medium;
+  position: relative;
+  overflow: hidden;
+  transition: var(--transition-smooth);
+}
+
+.liquid-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, var(--liquid-accent), transparent);
+  transition: width 0.5s ease, height 0.5s ease;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+}
+
+.liquid-button:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.liquid-button:hover {
+  transform: scale(var(--hover-scale));
+  box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.25);
+}
+
+.liquid-button:active {
+  transform: scale(var(--active-scale));
+}
+
+/* Glass Input */
+.glass-input {
+  @apply glass rounded-xl px-4 py-3;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: var(--transition-smooth);
+}
+
+.glass-input:focus {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(94, 114, 235, 0.5);
+  box-shadow: 0 0 0 4px rgba(94, 114, 235, 0.1);
+  outline: none;
+}
+
+/* Floating Glass Elements */
+.float-glass {
+  @apply glass rounded-full;
+  position: absolute;
+  animation: float 6s ease-in-out infinite;
+}
+
+.float-glass-1 {
+  width: 120px;
+  height: 120px;
+  top: 10%;
+  left: 10%;
+  animation-delay: 0s;
+  background: linear-gradient(135deg, var(--liquid-primary), var(--liquid-secondary));
+}
+
+.float-glass-2 {
+  width: 80px;
+  height: 80px;
+  top: 70%;
+  right: 10%;
+  animation-delay: 2s;
+  background: linear-gradient(135deg, var(--liquid-secondary), var(--liquid-accent));
+}
+
+.float-glass-3 {
+  width: 150px;
+  height: 150px;
+  bottom: 10%;
+  left: 50%;
+  animation-delay: 4s;
+  background: linear-gradient(135deg, var(--liquid-accent), var(--liquid-primary));
+}
+
+/* Glass Modal/Overlay */
+.glass-modal-backdrop {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.glass-modal {
+  @apply glass rounded-3xl;
+  max-width: 90vw;
+  max-height: 90vh;
+  animation: modal-appear 0.3s ease-out;
+}
+
+/* Liquid Navigation */
+.glass-nav {
+  @apply glass rounded-2xl;
+  overflow: hidden;
+}
+
+.glass-nav-item {
+  @apply relative px-4 py-3 transition-all duration-300;
+}
+
+.glass-nav-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, var(--liquid-primary), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.glass-nav-item:hover::before,
+.glass-nav-item.active::before {
+  opacity: 0.3;
+}
+
+/* Animations */
+@keyframes liquid-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-20px) rotate(120deg);
+  }
+  66% {
+    transform: translateY(20px) rotate(240deg);
+  }
+}
+
+@keyframes modal-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+/* Shimmer Effect */
+.glass-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: shimmer 3s infinite;
+}
+
+/* Liquid Progress Bar */
+.liquid-progress {
+  @apply glass rounded-full overflow-hidden;
+  height: 12px;
+  position: relative;
+}
+
+.liquid-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--liquid-primary), var(--liquid-secondary), var(--liquid-accent));
+  background-size: 200% 100%;
+  animation: liquid-flow 3s ease-in-out infinite;
+  transition: width 0.5s ease;
+}
+
+@keyframes liquid-flow {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+/* Utility Classes */
+.glass-glow {
+  box-shadow: 
+    var(--glass-shadow),
+    0 0 40px rgba(94, 114, 235, 0.1),
+    inset 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+.glass-hover:hover {
+  background: rgba(255, 255, 255, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 12px 40px 0 rgba(31, 38, 135, 0.2),
+    0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+.dark .glass-hover:hover {
+  background: rgba(50, 50, 60, 0.8);
+  box-shadow: 
+    0 12px 40px 0 rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.2);
+}

@@ -45,13 +45,20 @@ function App() {
   };
 
   return (
-    <div className="h-screen bg-gray-50 dark:bg-gray-950 overflow-hidden">
+    <div className="h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-slate-950 dark:via-blue-950 dark:to-purple-950 overflow-hidden relative">
+      {/* Floating glass elements for liquid effect */}
+      <div className="float-glass float-glass-1 opacity-30"></div>
+      <div className="float-glass float-glass-2 opacity-20"></div>
+      <div className="float-glass float-glass-3 opacity-25"></div>
+      
       <Sidebar />
       <main 
         className="lg:ml-64 h-full transition-all duration-300 overflow-hidden flex flex-col"
       >
-        <div className="flex-1 overflow-hidden">
-          {renderView()}
+        <div className="flex-1 overflow-hidden p-6">
+          <div className="h-full glass-card">
+            {renderView()}
+          </div>
         </div>
       </main>
     </div>

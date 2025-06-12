@@ -318,14 +318,16 @@ export const PromptRefiner: React.FC = () => {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
-        {/* Title Container */}
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold">PROMPT++</h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Title Container with Glass Effect */}
+        <div className="text-center space-y-2 p-8 glass rounded-3xl mb-8">
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent glass-shimmer">
+            PROMPT++
+          </h1>
+          <p className="text-lg text-gray-700 dark:text-gray-300">
             Automating Prompt Engineering by Refining your Prompts
           </p>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             Learn how to generate an improved version of your prompts.
           </p>
         </div>
@@ -337,7 +339,7 @@ export const PromptRefiner: React.FC = () => {
               value={promptText}
               onChange={(e) => setPromptText(e.target.value)}
               placeholder="Type your prompt (or leave empty to see metaprompt)"
-              className="w-full h-32 p-4 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full h-32 p-4 glass-input resize-none"
             />
             
             <Button
@@ -356,7 +358,7 @@ export const PromptRefiner: React.FC = () => {
                   <button
                     key={i}
                     onClick={() => handleExampleClick(example)}
-                    className="text-left p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm"
+                    className="text-left p-3 glass rounded-xl glass-hover transition-all text-sm"
                   >
                     {example}
                   </button>
@@ -400,10 +402,10 @@ export const PromptRefiner: React.FC = () => {
                   key={method.id}
                   onClick={() => setMetaPromptChoice(method.id)}
                   className={cn(
-                    "p-3 rounded-lg border text-sm font-medium transition-all",
+                    "p-3 rounded-xl text-sm font-medium transition-all glass-hover",
                     metaPromptChoice === method.id
-                      ? "bg-blue-600 text-white border-blue-600"
-                      : "bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-600"
+                      ? "liquid-button bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+                      : "glass"
                   )}
                 >
                   {method.label}
@@ -411,10 +413,10 @@ export const PromptRefiner: React.FC = () => {
               ))}
             </div>
 
-            <Button
+            <button
               onClick={handleRefinePrompt}
               disabled={isRefining}
-              className={cn("w-full", getButtonClass(refineButtonState))}
+              className={cn("w-full liquid-button py-3 font-semibold", getButtonClass(refineButtonState))}
             >
               {isRefining ? (
                 <>
@@ -424,7 +426,7 @@ export const PromptRefiner: React.FC = () => {
               ) : (
                 'Refine Prompt'
               )}
-            </Button>
+            </button>
 
             <Button
               variant="outline"
@@ -438,7 +440,7 @@ export const PromptRefiner: React.FC = () => {
             </Button>
 
             {showExplanation && (
-              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <div className="p-4 glass rounded-xl glass-shimmer">
                 <p className="text-sm">
                   Metaprompts are structured templates that guide the refinement process. Each method has specific strengths and use cases.
                 </p>
@@ -461,7 +463,7 @@ export const PromptRefiner: React.FC = () => {
                 <>
                   <h3 className="text-lg font-semibold">Refined Prompt</h3>
                   <div className="relative">
-                    <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-900">
+                    <div className="glass rounded-xl p-4">
                       <pre className="whitespace-pre-wrap font-mono text-sm">
                         {refinedPrompt}
                       </pre>
