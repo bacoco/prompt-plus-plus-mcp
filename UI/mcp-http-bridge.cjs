@@ -209,18 +209,128 @@ app.get('/strategies', async (req, res) => {
   }
 });
 
-app.get('/strategies/:id', async (req, res) => {
+// Search route must be before :id route
+app.get('/strategies/search', async (req, res) => {
   try {
+    // Get all strategies first
     const result = await sendMCPRequest({
       jsonrpc: '2.0',
       method: 'tools/call',
       params: {
-        name: 'get_strategy',
-        arguments: {
-          strategy_id: req.params.id
-        }
+        name: 'list_strategies',
+        arguments: {}
       }
     });
+
+    const content = result.content?.[0]?.text || '{}';
+    let strategies = [];
+    
+    try {
+      const parsed = JSON.parse(content);
+      // Handle different response formats
+      if (Array.isArray(parsed)) {
+        strategies = parsed;
+      } else if (parsed.strategies) {
+        if (Array.isArray(parsed.strategies)) {
+          strategies = parsed.strategies;
+        } else if (typeof parsed.strategies === 'object') {
+          // Convert object to array
+          strategies = Object.entries(parsed.strategies).map(([key, strategy]) => ({
+            ...strategy,
+            id: key,
+            key: key,
+            category: strategy.category || strategy.customCategory || 'uncategorized'
+          }));
+        }
+      } else if (typeof parsed === 'object') {
+        // If it's a direct object with strategy keys
+        strategies = Object.entries(parsed).map(([key, strategy]) => ({
+          ...strategy,
+          id: key,
+          key: key,
+          category: strategy.category || strategy.customCategory || 'uncategorized'
+        }));
+      }
+    } catch (e) {
+      console.error('Failed to parse strategies for search:', e);
+      strategies = [];
+    }
+    
+    // Filter based on search query
+    const query = req.query.q?.toLowerCase() || '';
+    const filtered = query 
+      ? strategies.filter(s =>
+          s.name?.toLowerCase().includes(query) ||
+          s.description?.toLowerCase().includes(query) ||
+          s.category?.toLowerCase().includes(query)
+        )
+      : strategies;
+
+    // Ensure each strategy has required fields
+    const enrichedStrategies = filtered.map(s => ({
+      id: s.id || s.key || `${s.category || 'uncategorized'}/${s.name}`.toLowerCase().replace(/\s+/g, '-'),
+      name: s.name || 'Unnamed Strategy',
+      description: s.description || 'No description available',
+      category: s.category || s.customCategory || 'uncategorized',
+      content: s.content || s,
+      examples: Array.isArray(s.examples) ? s.examples : (s.examples ? [s.examples] : [])
+    }));
+
+    res.json(enrichedStrategies);
+  } catch (error) {
+    console.error('Error searching strategies:', error);
+    res.status(500).json({ error: 'Failed to search strategies' });
+  }
+});
+
+app.get('/strategies/:id', async (req, res) => {
+  try {
+    // First try get_strategy_details tool
+    let result;
+    try {
+      result = await sendMCPRequest({
+        jsonrpc: '2.0',
+        method: 'tools/call',
+        params: {
+          name: 'get_strategy_details',
+          arguments: {
+            strategy: req.params.id
+          }
+        }
+      });
+    } catch (toolError) {
+      // If that fails, get all strategies and find the one we want
+      console.log('get_strategy_details failed, falling back to list_strategies');
+      const allStrategiesResult = await sendMCPRequest({
+        jsonrpc: '2.0',
+        method: 'tools/call',
+        params: {
+          name: 'list_strategies',
+          arguments: {}
+        }
+      });
+      
+      const content = allStrategiesResult.content?.[0]?.text || '{}';
+      const parsed = JSON.parse(content);
+      let strategies = {};
+      
+      if (parsed.strategies) {
+        strategies = parsed.strategies;
+      } else if (typeof parsed === 'object') {
+        strategies = parsed;
+      }
+      
+      const strategy = strategies[req.params.id];
+      if (!strategy) {
+        return res.status(404).json({ error: 'Strategy not found' });
+      }
+      
+      return res.json({
+        ...strategy,
+        id: req.params.id,
+        category: strategy.category || 'uncategorized'
+      });
+    }
 
     const content = result.content?.[0]?.text;
     if (!content) {
@@ -273,70 +383,6 @@ app.post('/refine', async (req, res) => {
   } catch (error) {
     console.error('Error refining prompt:', error);
     res.status(500).json({ error: 'Failed to refine prompt' });
-  }
-});
-
-app.get('/strategies/search', async (req, res) => {
-  try {
-    // Get all strategies and filter
-    const allStrategies = await sendMCPRequest({
-      jsonrpc: '2.0',
-      method: 'tools/call',
-      params: {
-        name: 'list_strategies',
-        arguments: {}
-      }
-    });
-
-    const content = allStrategies.content?.[0]?.text || '{}';
-    let strategies = [];
-    
-    try {
-      const parsed = JSON.parse(content);
-      if (Array.isArray(parsed)) {
-        strategies = parsed;
-      } else if (parsed.strategies) {
-        if (Array.isArray(parsed.strategies)) {
-          strategies = parsed.strategies;
-        } else if (typeof parsed.strategies === 'object') {
-          strategies = Object.entries(parsed.strategies).map(([key, strategy]) => ({
-            ...strategy,
-            id: key,
-            key: key,
-            category: strategy.category || strategy.customCategory || 'uncategorized'
-          }));
-        }
-      } else if (typeof parsed === 'object') {
-        strategies = Object.entries(parsed).map(([key, strategy]) => ({
-          ...strategy,
-          id: key,
-          key: key,
-          category: strategy.category || strategy.customCategory || 'uncategorized'
-        }));
-      }
-    } catch (e) {
-      console.error('Failed to parse strategies for search:', e);
-      strategies = [];
-    }
-    
-    const query = req.query.q?.toLowerCase() || '';
-    const filtered = strategies.filter(s =>
-      s.name.toLowerCase().includes(query) ||
-      s.description.toLowerCase().includes(query) ||
-      s.category.toLowerCase().includes(query)
-    );
-
-    res.json(filtered.map(s => ({
-      id: s.id || s.key || `${s.category || 'uncategorized'}/${s.name}`.toLowerCase().replace(/\s+/g, '-'),
-      name: s.name || 'Unnamed Strategy',
-      description: s.description || 'No description available',
-      category: s.category || s.customCategory || 'uncategorized',
-      content: s.content || s,
-      examples: Array.isArray(s.examples) ? s.examples : (s.examples ? [s.examples] : [])
-    })));
-  } catch (error) {
-    console.error('Error searching strategies:', error);
-    res.status(500).json({ error: 'Failed to search strategies' });
   }
 });
 
@@ -435,91 +481,84 @@ app.post('/automatic-metaprompt', async (req, res) => {
       return res.status(400).json({ error: 'Prompt is required' });
     }
     
-    // Call MCP server to get strategy recommendation
+    // Call MCP server to get strategy recommendation using auto_refine prompt
     try {
       const result = await sendMCPRequest({
         jsonrpc: '2.0',
-        method: 'tools/call',
+        method: 'prompts/get',
         params: {
-          name: 'select_strategy',
+          name: 'auto_refine',
           arguments: {
-            prompt,
-            auto_select: true
+            user_prompt: prompt
           }
         }
       });
       
-      const content = result.content?.[0]?.text;
+      // Extract the content from the prompt response
+      let content = '';
+      if (result.messages && result.messages.length > 0) {
+        content = result.messages[0].content;
+        if (typeof content === 'object' && content.text) {
+          content = content.text;
+        }
+      }
+      
       if (!content) {
         throw new Error('No strategy recommendation received from MCP server');
       }
       
-      // Check if this is a Claude-ready format
-      const isClaudeFormat = (content) => {
-        if (typeof content === 'string') {
-          return content.includes('You are about to') || 
-                 content.includes('Your task is to') ||
-                 content.includes('<prompt>') ||
-                 content.includes('Please process') ||
-                 content.includes('auto_refine');
-        }
-        return false;
+      // The auto_refine prompt returns a refined prompt directly
+      // We need to analyze it to determine which strategy was used
+      const strategyIndicators = {
+        'assumption_detector': /assumptions|premise|belief/i,
+        'devils_advocate': /devil's advocate|counterargument|challenge/i,
+        'pattern_recognizer': /pattern|trend|recurring/i,
+        'precision_questioner': /precise|specific|clarity/i,
+        'perspective_multiplier': /perspective|viewpoint|angle/i,
+        'star': /STAR|situation|task|action|result/i,
+        'arpe': /Assumption|Reasoning|Perspective|Evidence/i,
+        'done': /Define|Outline|Narrow|Evaluate/i,
+        'bolism': /Break down|Organize|Link|Infer|Synthesize|Map/i
       };
       
-      // Parse the response from MCP server
-      let recommendation;
+      // Try to detect which strategy was likely used
+      let detectedStrategy = 'auto-selected';
+      let detectedStrategyName = 'Auto-Selected Strategy';
       
-      if (isClaudeFormat(content)) {
-        // This is a Claude-ready prompt, extract metadata if possible
-        const strategyMatch = content.match(/strategy[:\s]+([^\n]+)/i);
-        const explanationMatch = content.match(/explanation[:\s]+([^\n]+)/i);
-        
-        recommendation = {
-          recommended_metaprompt: {
-            key: strategyMatch ? strategyMatch[1].trim().toLowerCase().replace(/\s+/g, '-') : 'auto-selected',
-            name: strategyMatch ? strategyMatch[1].trim() : 'Auto-Selected Strategy',
-            description: 'Claude-ready prompt for processing',
-            explanation: explanationMatch ? explanationMatch[1].trim() : 'This prompt has been formatted for direct use with Claude',
-            isClaudeReady: true
-          },
-          auto_refine: {
-            enabled: true,
-            prompt: content
-          }
-        };
-      } else {
-        try {
-          // Try to parse as JSON
-          recommendation = JSON.parse(content);
-          
-          // Check if auto_refine contains a Claude-ready prompt
-          if (recommendation.auto_refine && isClaudeFormat(recommendation.auto_refine)) {
-            recommendation.auto_refine = {
-              enabled: true,
-              prompt: recommendation.auto_refine,
-              isClaudeReady: true
-            };
-          }
-        } catch (e) {
-          // If not JSON, create a basic recommendation
-          recommendation = {
-            recommended_metaprompt: {
-              key: 'general',
-              name: 'General Strategy',
-              description: content,
-              explanation: 'Selected based on prompt analysis'
-            }
-          };
+      for (const [key, pattern] of Object.entries(strategyIndicators)) {
+        if (pattern.test(content)) {
+          detectedStrategy = key;
+          // Get the actual strategy name from the content if possible
+          const strategyMatch = content.match(/using the ([^:]+) strategy/i);
+          detectedStrategyName = strategyMatch ? strategyMatch[1].trim() : key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+          break;
         }
       }
       
+      // Create a recommendation response that matches the expected format
+      const recommendation = {
+        recommended_metaprompt: {
+          key: detectedStrategy,
+          name: detectedStrategyName,
+          description: 'Strategy automatically selected and applied based on your prompt',
+          explanation: 'The auto_refine prompt analyzed your input and selected the most appropriate refinement strategy',
+          isClaudeReady: true
+        },
+        auto_refine: {
+          enabled: true,
+          prompt: content,
+          isClaudeReady: true
+        }
+      };
+      
       res.json(recommendation);
     } catch (mcpError) {
-      console.error('MCP strategy selection failed:', mcpError);
-      // Return error instead of mock data
+      console.error('MCP auto_refine failed:', mcpError);
+      // Return error with helpful message
       return res.status(503).json({ 
-        error: 'Strategy selection service unavailable',
-        details: mcpError.message 
+        error: 'Auto-refinement service unavailable',
+        details: mcpError.message,
+        hint: 'Make sure the MCP server is running and the auto_refine prompt is available'
       });
     }
   } catch (error) {

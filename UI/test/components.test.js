@@ -44,7 +44,7 @@ describe('React Components - Dynamic Data Loading', () => {
         ]
       };
 
-      mock.onGet('http://localhost:3002/strategies').reply(200, mockStrategies);
+      mock.onGet('http://localhost:3001/strategies').reply(200, mockStrategies);
 
       renderWithQueryClient(<PromptRefiner />);
 
@@ -70,8 +70,8 @@ describe('React Components - Dynamic Data Loading', () => {
         refinedPrompt: 'This is a dynamically refined prompt from MCP server'
       };
 
-      mock.onGet('http://localhost:3002/strategies').reply(200, mockStrategies);
-      mock.onPost('http://localhost:3002/refine-with-strategy').reply(200, mockRefinement);
+      mock.onGet('http://localhost:3001/strategies').reply(200, mockStrategies);
+      mock.onPost('http://localhost:3001/refine-with-strategy').reply(200, mockRefinement);
 
       renderWithQueryClient(<PromptRefiner />);
 
@@ -101,7 +101,7 @@ describe('React Components - Dynamic Data Loading', () => {
     });
 
     test('should display error when MCP server is unavailable', async () => {
-      mock.onGet('http://localhost:3002/strategies').networkError();
+      mock.onGet('http://localhost:3001/strategies').networkError();
 
       renderWithQueryClient(<PromptRefiner />);
 
@@ -116,7 +116,7 @@ describe('React Components - Dynamic Data Loading', () => {
         refinedPrompt: 'Automatically refined prompt'
       };
 
-      mock.onPost('http://localhost:3002/automatic-metaprompt').reply(200, mockAutoResponse);
+      mock.onPost('http://localhost:3001/automatic-metaprompt').reply(200, mockAutoResponse);
 
       renderWithQueryClient(<PromptRefiner />);
 
@@ -143,7 +143,7 @@ describe('React Components - Dynamic Data Loading', () => {
         ]
       };
 
-      mock.onGet('http://localhost:3002/strategies').reply(200, mockStrategies);
+      mock.onGet('http://localhost:3001/strategies').reply(200, mockStrategies);
 
       renderWithQueryClient(<StrategyExplorer />);
 
@@ -165,7 +165,7 @@ describe('React Components - Dynamic Data Loading', () => {
         ]
       };
 
-      mock.onGet('http://localhost:3002/strategies').reply(200, mockStrategies);
+      mock.onGet('http://localhost:3001/strategies').reply(200, mockStrategies);
 
       renderWithQueryClient(<StrategyExplorer />);
 
@@ -197,7 +197,7 @@ describe('React Components - Dynamic Data Loading', () => {
         ]
       };
 
-      mock.onGet('http://localhost:3002/strategies').reply(200, mockStrategies);
+      mock.onGet('http://localhost:3001/strategies').reply(200, mockStrategies);
 
       renderWithQueryClient(<StrategyExplorer />);
 
@@ -229,8 +229,8 @@ describe('React Components - Dynamic Data Loading', () => {
         recentActivity: []
       };
 
-      mock.onGet('http://localhost:3002/strategies').reply(200, mockStrategies);
-      mock.onGet('http://localhost:3002/stats').reply(200, mockStats);
+      mock.onGet('http://localhost:3001/strategies').reply(200, mockStrategies);
+      mock.onGet('http://localhost:3001/stats').reply(200, mockStats);
 
       renderWithQueryClient(<Dashboard />);
 
@@ -256,7 +256,7 @@ describe('React Components - Dynamic Data Loading', () => {
         ]
       };
 
-      mock.onGet('http://localhost:3002/strategies').replyOnce(200, initialStrategies);
+      mock.onGet('http://localhost:3001/strategies').replyOnce(200, initialStrategies);
 
       renderWithQueryClient(<Dashboard />);
 
@@ -265,7 +265,7 @@ describe('React Components - Dynamic Data Loading', () => {
       });
 
       // Simulate refresh
-      mock.onGet('http://localhost:3002/strategies').replyOnce(200, updatedStrategies);
+      mock.onGet('http://localhost:3001/strategies').replyOnce(200, updatedStrategies);
 
       const refreshButton = screen.getByText(/refresh/i);
       fireEvent.click(refreshButton);
@@ -290,7 +290,7 @@ describe('React Components - Dynamic Data Loading', () => {
 
       endpoints.forEach(endpoint => {
         mock[`on${endpoint.method.charAt(0).toUpperCase() + endpoint.method.slice(1)}`](
-          `http://localhost:3002${endpoint.url}`
+          `http://localhost:3001${endpoint.url}`
         ).reply(200, mockResponse);
       });
 
@@ -313,9 +313,9 @@ describe('React Components - Dynamic Data Loading', () => {
       // Verify all requests went to MCP bridge
       expect(mock.history.get.length).toBe(1);
       expect(mock.history.post.length).toBe(3);
-      expect(mock.history.get[0].url).toContain('localhost:3002');
+      expect(mock.history.get[0].url).toContain('localhost:3001');
       mock.history.post.forEach(req => {
-        expect(req.url).toContain('localhost:3002');
+        expect(req.url).toContain('localhost:3001');
       });
     });
   });

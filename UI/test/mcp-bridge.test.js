@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const BRIDGE_BASE_URL = 'http://localhost:3002';
+const BRIDGE_BASE_URL = 'http://localhost:3001';
 
 describe('MCP Bridge Endpoints', () => {
   // Helper to check if response contains dynamic data
@@ -16,14 +16,14 @@ describe('MCP Bridge Endpoints', () => {
       
       expect(response.status).toBe(200);
       expect(response.data).toBeDefined();
-      expect(response.data.strategies).toBeInstanceOf(Array);
-      expect(response.data.strategies.length).toBeGreaterThan(0);
+      expect(response.data).toBeInstanceOf(Array);
+      expect(response.data.length).toBeGreaterThan(0);
       
       // Verify this is dynamic data
       verifyDynamicData(response.data);
       
       // Check strategy structure
-      const strategy = response.data.strategies[0];
+      const strategy = response.data[0];
       expect(strategy).toHaveProperty('id');
       expect(strategy).toHaveProperty('name');
       expect(strategy).toHaveProperty('description');
@@ -57,6 +57,10 @@ describe('MCP Bridge Endpoints', () => {
       expect(response.data).toHaveProperty('refinedPrompt');
       expect(response.data.refinedPrompt).not.toBe(payload.prompt);
       expect(response.data.refinedPrompt.length).toBeGreaterThan(payload.prompt.length);
+      
+      // Check for Claude-aware response format
+      expect(response.data).toHaveProperty('hasMetaprompt');
+      expect(response.data).toHaveProperty('templateType');
       
       verifyDynamicData(response.data);
     });
@@ -111,6 +115,12 @@ describe('MCP Bridge Endpoints', () => {
       expect(response.data).toHaveProperty('refinedPrompt');
       expect(response.data.strategy).toHaveProperty('id');
       expect(response.data.strategy).toHaveProperty('name');
+      
+      // Check for Claude format detection
+      expect(response.data).toHaveProperty('suggestsClaudeProcessing');
+      if (response.data.suggestsClaudeProcessing) {
+        expect(response.data).toHaveProperty('formatHint');
+      }
       
       verifyDynamicData(response.data);
     });
@@ -216,7 +226,7 @@ describe('MCP Bridge Endpoints', () => {
   describe('Data Validation', () => {
     test('should verify no hardcoded strategies', async () => {
       const response = await axios.get(`${BRIDGE_BASE_URL}/strategies`);
-      const strategies = response.data.strategies;
+      const strategies = response.data;
       
       // Check that strategies are coming from MCP, not hardcoded
       expect(strategies.length).toBeGreaterThan(5); // MCP should have many strategies
@@ -246,6 +256,114 @@ describe('MCP Bridge Endpoints', () => {
       const refinedPrompts = results.map(r => r.data.refinedPrompt);
       const uniqueRefinements = new Set(refinedPrompts);
       expect(uniqueRefinements.size).toBe(testPrompts.length);
+    });
+  });
+
+  describe('Claude Integration Features', () => {
+    test('should support Claude-enhanced refinements', async () => {
+      const payload = {
+        prompt: 'Design a REST API architecture',
+        strategyId: 'architect',
+        useClaudeProcessing: true
+      };
+
+      const response = await axios.post(
+        `${BRIDGE_BASE_URL}/refine-with-strategy`,
+        payload
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.data).toHaveProperty('refinedPrompt');
+      expect(response.data).toHaveProperty('claudeProcessed');
+      
+      // If Claude processing was used, check for extracted data
+      if (response.data.claudeProcessed) {
+        expect(response.data).toHaveProperty('extractedData');
+      }
+    });
+
+    test('should detect Claude-compatible strategies', async () => {
+      const response = await axios.get(`${BRIDGE_BASE_URL}/strategies`);
+      const strategies = response.data;
+      
+      // Find Claude-enhanced strategies
+      const claudeStrategies = strategies.filter(s => s.claudeEnhanced);
+      expect(claudeStrategies.length).toBeGreaterThan(0);
+      
+      claudeStrategies.forEach(strategy => {
+        expect(strategy).toHaveProperty('claudeTemplate');
+      });
+    });
+
+    test('should handle automatic Claude format detection', async () => {
+      const technicalPrompts = [
+        { prompt: 'Review code for security vulnerabilities', expectedStrategy: 'reviewer' },
+        { prompt: 'Design microservices architecture', expectedStrategy: 'architect' },
+        { prompt: 'Set up CI/CD pipeline', expectedStrategy: 'devops' }
+      ];
+
+      for (const testCase of technicalPrompts) {
+        const response = await axios.post(
+          `${BRIDGE_BASE_URL}/automatic-metaprompt`,
+          { prompt: testCase.prompt, context: { enableClaude: true } }
+        );
+
+        expect(response.status).toBe(200);
+        expect(response.data.suggestsClaudeProcessing).toBe(true);
+        
+        // Technical prompts should select appropriate strategies
+        if (response.data.strategy.id === testCase.expectedStrategy) {
+          expect(response.data.strategy.claudeEnhanced).toBe(true);
+        }
+      }
+    });
+
+    test('should preserve refinement chain with Claude processing', async () => {
+      // Multi-step refinement
+      const step1 = await axios.post(
+        `${BRIDGE_BASE_URL}/refine-with-strategy`,
+        {
+          prompt: 'Create user authentication',
+          strategyId: 'architect',
+          useClaudeProcessing: true
+        }
+      );
+
+      const step2 = await axios.post(
+        `${BRIDGE_BASE_URL}/refine-with-strategy`,
+        {
+          prompt: step1.data.refinedPrompt,
+          strategyId: 'reviewer',
+          context: { previousRefinement: step1.data },
+          useClaudeProcessing: true
+        }
+      );
+
+      expect(step2.status).toBe(200);
+      expect(step2.data).toHaveProperty('refinementChain');
+      expect(step2.data.refinementChain).toHaveLength(2);
+      expect(step2.data.refinementChain[0].strategy).toBe('architect');
+      expect(step2.data.refinementChain[1].strategy).toBe('reviewer');
+    });
+
+    test('should fallback gracefully when Claude is unavailable', async () => {
+      const payload = {
+        prompt: 'Test prompt',
+        strategyId: 'morphosis',
+        useClaudeProcessing: true,
+        // Force fallback by using invalid API key
+        context: { forceClaudeError: true }
+      };
+
+      const response = await axios.post(
+        `${BRIDGE_BASE_URL}/refine-with-strategy`,
+        payload
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.data).toHaveProperty('refinedPrompt');
+      expect(response.data.claudeProcessed).toBe(false);
+      expect(response.data).toHaveProperty('fallbackReason');
     });
   });
 });

@@ -9,6 +9,7 @@
     "test:mcp-bridge": "jest mcp-bridge.test.js",
     "test:components": "jest components.test.js",
     "test:integration": "jest integration.test.js",
+    "test:claude": "jest claude-integration.test.js",
     "test:all": "node run-tests.js"
   },
   "jest": {

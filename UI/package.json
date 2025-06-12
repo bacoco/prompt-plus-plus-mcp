@@ -5,7 +5,10 @@
   "main": "mcp-http-bridge.cjs",
   "scripts": {
     "start": "node mcp-http-bridge.cjs",
-    "dev": "nodemon mcp-http-bridge.cjs"
+    "dev": "nodemon mcp-http-bridge.cjs",
+    "test": "jest",
+    "test:simple": "jest simple-integration.test.js",
+    "test:claude": "jest claude-integration.test.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.24.3",
@@ -15,6 +18,8 @@
     "socket.io": "^4.7.2"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2"
+    "nodemon": "^3.0.2",
+    "jest": "^29.7.0",
+    "axios": "^1.6.2"
   }
 }

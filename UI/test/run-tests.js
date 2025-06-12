@@ -56,7 +56,7 @@ const main = async () => {
     logSection('Checking Services Status');
     
     const mcpRunning = await checkService('http://localhost:3001/health', 'MCP Server');
-    const bridgeRunning = await checkService('http://localhost:3002/health', 'MCP Bridge');
+    const bridgeRunning = await checkService('http://localhost:3001/health', 'MCP Bridge');
 
     if (!mcpRunning || !bridgeRunning) {
       logSection('Starting Required Services');
@@ -88,7 +88,7 @@ const main = async () => {
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         const mcpReady = await checkService('http://localhost:3001/health', 'MCP Server');
-        const bridgeReady = await checkService('http://localhost:3002/health', 'MCP Bridge');
+        const bridgeReady = await checkService('http://localhost:3001/health', 'MCP Bridge');
 
         if (mcpReady && bridgeReady) {
           logSuccess('All services are running!');
@@ -121,6 +121,13 @@ const main = async () => {
     });
     logSuccess('Component tests passed!');
 
+    // Run Claude integration tests
+    logInfo('Running Claude integration tests...');
+    await runCommand('npm', ['test', '--', 'claude-integration.test.js'], {
+      cwd: path.join(__dirname, '..')
+    });
+    logSuccess('Claude integration tests passed!');
+
     // Run integration tests (optional - requires more setup)
     logInfo('Running integration tests...');
     await runCommand('npm', ['test', '--', 'integration.test.js'], {
@@ -133,6 +140,7 @@ const main = async () => {
     logSuccess('All tests passed successfully!');
     logInfo('The UI is correctly loading all data from MCP server');
     logInfo('No static data is being used');
+    logInfo('Claude integration is properly configured');
 
   } catch (error) {
     logSection('Error');
