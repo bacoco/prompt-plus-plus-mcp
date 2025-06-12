@@ -47,10 +47,16 @@
     "dev": "tsx src/index.ts",
     "clean": "rm -rf dist/",
     "prepublishOnly": "npm run clean && npm run build",
-    "test": "npm run build && node dist/index.js --help || echo 'Server builds successfully'"
+    "test": "npm run build && node dist/index.js --help || echo 'Server builds successfully'",
+    "ui": "cd UI && ./start-ui.sh",
+    "ui:bridge": "node UI/mcp-http-bridge.cjs",
+    "ui:dev": "cd UI/prompt-plus-ui && npm run dev"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "socket.io": "^4.8.1",
     "zod": "^3.25.63"
   },
   "devDependencies": {

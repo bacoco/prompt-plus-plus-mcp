@@ -1,0 +1,526 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Sparkles, 
+  RefreshCw, 
+  Copy, 
+  Check, 
+  ChevronDown,
+  ChevronUp,
+  Zap,
+  Info,
+  BarChart,
+  Loader2
+} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
+import { mcpApi } from '../services/api';
+import { cn } from '../lib/utils';
+import { OutputComparison } from './OutputComparison';
+import { metapromptRouter } from '../constants/metapromptRouter';
+
+// Match the exact refinement methods from the MCP server
+const REFINEMENT_METHODS = [
+  { id: 'arpe', label: 'ARPE Framework' },
+  { id: 'star', label: 'STAR Method' },
+  { id: 'bolism', label: 'Meta-Cognitive' },
+  { id: 'done', label: 'DONE Framework' },
+  { id: 'morphosis', label: 'Structured Evolution' },
+  { id: 'physics', label: 'Scientific Method' },
+  { id: 'math', label: 'Mathematical Proof' },
+  { id: 'phor', label: 'Creative Metaphors' },
+  { id: 'verse', label: 'Inverse Thinking' },
+  { id: 'touille', label: 'Multi-Stage Analysis' }
+];
+
+// Example prompts from the MCP strategies
+const PROMPT_EXAMPLES = [
+  "Write a Python function to calculate the factorial of a number",
+  "Explain quantum computing to a 10-year-old",
+  "Create a marketing strategy for a new eco-friendly product",
+  "Design a REST API for a task management system",
+  "Write a haiku about artificial intelligence"
+];
+
+// Available models matching the Gradio app
+const MODELS = [
+  "meta-llama/Meta-Llama-3-70B-Instruct",
+  "meta-llama/Meta-Llama-3-8B-Instruct",
+  "meta-llama/Llama-3.1-70B-Instruct",
+  "meta-llama/Llama-3.1-8B-Instruct",
+  "meta-llama/Llama-3.2-3B-Instruct",
+  "meta-llama/Llama-3.2-1B-Instruct",
+  "meta-llama/Llama-2-13b-chat-hf",
+  "meta-llama/Llama-2-7b-chat-hf",
+  "HuggingFaceH4/zephyr-7b-beta",
+  "HuggingFaceH4/zephyr-7b-alpha",
+  "Qwen/Qwen2.5-72B-Instruct",
+  "Qwen/Qwen2.5-1.5B",
+  "microsoft/Phi-3.5-mini-instruct"
+];
+
+export const PromptRefiner: React.FC = () => {
+  // State matching the Gradio app
+  const [promptText, setPromptText] = useState('');
+  const [metaPromptChoice, setMetaPromptChoice] = useState(REFINEMENT_METHODS[0].id);
+  const [applyModel, setApplyModel] = useState(MODELS[MODELS.length - 1]); // Default to last model
+  const [metaPromptAnalysis, setMetaPromptAnalysis] = useState('');
+  const [promptEvaluation, setPromptEvaluation] = useState('');
+  const [refinedPrompt, setRefinedPrompt] = useState('');
+  const [explanationOfRefinements, setExplanationOfRefinements] = useState('');
+  const [fullResponseJson, setFullResponseJson] = useState<any>(null);
+  const [originalOutput, setOriginalOutput] = useState('');
+  const [refinedOutput, setRefinedOutput] = useState('');
+  const [originalOutput1, setOriginalOutput1] = useState('');
+  const [refinedOutput1, setRefinedOutput1] = useState('');
+  
+  // UI state
+  const [showExamples, setShowExamples] = useState(false);
+  const [showExplanation, setShowExplanation] = useState(false);
+  const [showFullResponse, setShowFullResponse] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isRefining, setIsRefining] = useState(false);
+  const [isApplying, setIsApplying] = useState(false);
+  
+  // Button states: 'highlight', 'waiting', 'completed', 'active'
+  const [automaticButtonState, setAutomaticButtonState] = useState('highlight');
+  const [refineButtonState, setRefineButtonState] = useState('waiting');
+  const [applyButtonState, setApplyButtonState] = useState('waiting');
+
+  // Clear outputs when prompt changes (matching Gradio behavior)
+  useEffect(() => {
+    if (promptText !== undefined) {
+      // Clear all outputs
+      setMetaPromptAnalysis('');
+      setPromptEvaluation('');
+      setRefinedPrompt('');
+      setExplanationOfRefinements('');
+      setOriginalOutput('');
+      setRefinedOutput('');
+      setOriginalOutput1('');
+      setRefinedOutput1('');
+      setFullResponseJson(null);
+      
+      // Reset button states
+      setAutomaticButtonState('highlight');
+      setRefineButtonState('waiting');
+      setApplyButtonState('waiting');
+    }
+  }, [promptText]);
+
+  // Automatic metaprompt selection (matching prompt_refiner.py)
+  const handleAutomaticMetaprompt = async () => {
+    if (!promptText.trim()) {
+      setMetaPromptAnalysis('Please enter a prompt to analyze.');
+      return;
+    }
+    
+    setIsAnalyzing(true);
+    setAutomaticButtonState('active');
+    
+    try {
+      // Clear subsequent outputs
+      setPromptEvaluation('');
+      setRefinedPrompt('');
+      setExplanationOfRefinements('');
+      setOriginalOutput('');
+      setRefinedOutput('');
+      setOriginalOutput1('');
+      setRefinedOutput1('');
+      
+      // Call the automatic metaprompt selection
+      const result = await mcpApi.automaticMetaprompt(promptText);
+      
+      setMetaPromptAnalysis(result.analysis);
+      setMetaPromptChoice(result.recommendedKey);
+      
+      // Update button states
+      setAutomaticButtonState('completed');
+      setRefineButtonState('highlight');
+      setApplyButtonState('waiting');
+    } catch (error) {
+      console.error('Analysis error:', error);
+      setMetaPromptAnalysis(`Error in automatic metaprompt: ${error}`);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  // Refine prompt (matching prompt_refiner.py)
+  const handleRefinePrompt = async () => {
+    if (!promptText.trim()) {
+      setPromptEvaluation('No prompt provided.');
+      setRefinedPrompt('');
+      setExplanationOfRefinements('');
+      setFullResponseJson({});
+      return;
+    }
+    
+    setIsRefining(true);
+    setRefineButtonState('active');
+    
+    try {
+      // Clear model outputs
+      setOriginalOutput('');
+      setRefinedOutput('');
+      setOriginalOutput1('');
+      setRefinedOutput1('');
+      
+      const result = await mcpApi.refinePromptWithStrategy(promptText, metaPromptChoice);
+      
+      setPromptEvaluation(result.initialPromptEvaluation);
+      setRefinedPrompt(result.refinedPrompt);
+      setExplanationOfRefinements(result.explanationOfRefinements);
+      setFullResponseJson(result.fullResponse);
+      
+      // Update button states
+      setAutomaticButtonState('completed');
+      setRefineButtonState('completed');
+      setApplyButtonState('highlight');
+    } catch (error) {
+      console.error('Refinement error:', error);
+      const errorMsg = `Error in refine_prompt: ${error}`;
+      setPromptEvaluation(errorMsg);
+      setRefinedPrompt('');
+      setExplanationOfRefinements('');
+      setFullResponseJson({});
+    } finally {
+      setIsRefining(false);
+    }
+  };
+
+  // Apply prompts to model (matching app.py)
+  const handleApplyPrompts = async () => {
+    if (!promptText || !refinedPrompt) {
+      const msg = 'Please provide both original and refined prompts.';
+      setOriginalOutput(msg);
+      setRefinedOutput(msg);
+      setOriginalOutput1(msg);
+      setRefinedOutput1(msg);
+      return;
+    }
+    
+    if (!applyModel) {
+      const msg = 'Please select a model.';
+      setOriginalOutput(msg);
+      setRefinedOutput(msg);
+      setOriginalOutput1(msg);
+      setRefinedOutput1(msg);
+      return;
+    }
+    
+    setIsApplying(true);
+    setApplyButtonState('active');
+    
+    try {
+      // Apply both prompts
+      const [originalResult, refinedResult] = await Promise.all([
+        mcpApi.applyPrompt(promptText, applyModel),
+        mcpApi.applyPrompt(refinedPrompt, applyModel)
+      ]);
+      
+      // Set outputs for all tabs (matching Gradio's behavior)
+      setOriginalOutput(originalResult);
+      setRefinedOutput(refinedResult);
+      setOriginalOutput1(originalResult); // For comparison tab
+      setRefinedOutput1(refinedResult);   // For comparison tab
+      
+      // Update button states
+      setApplyButtonState('completed');
+    } catch (error) {
+      console.error('Apply error:', error);
+      const errorMsg = `Error in apply_prompts: ${error}`;
+      setOriginalOutput(errorMsg);
+      setRefinedOutput(errorMsg);
+      setOriginalOutput1(errorMsg);
+      setRefinedOutput1(errorMsg);
+    } finally {
+      setIsApplying(false);
+    }
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(refinedPrompt);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleExampleClick = (example: string) => {
+    setPromptText(example);
+    setShowExamples(false);
+  };
+
+  // Get button class based on state
+  const getButtonClass = (state: string) => {
+    switch (state) {
+      case 'highlight':
+        return 'bg-orange-500 hover:bg-orange-600 text-white';
+      case 'completed':
+        return 'bg-green-500 hover:bg-green-600 text-white';
+      case 'waiting':
+        return 'bg-gray-300 hover:bg-gray-400 text-gray-600';
+      case 'active':
+        return 'bg-blue-500 hover:bg-blue-600 text-white';
+      default:
+        return '';
+    }
+  };
+
+  return (
+    <div className="h-full overflow-y-auto">
+      <div className="max-w-7xl mx-auto p-6 space-y-6">
+        {/* Title Container */}
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl font-bold">PROMPT++</h1>
+          <p className="text-lg text-gray-600 dark:text-gray-400">
+            Automating Prompt Engineering by Refining your Prompts
+          </p>
+          <p className="text-sm text-gray-500">
+            Learn how to generate an improved version of your prompts.
+          </p>
+        </div>
+
+        {/* Input Container */}
+        <Card>
+          <CardContent className="space-y-4 pt-6">
+            <textarea
+              value={promptText}
+              onChange={(e) => setPromptText(e.target.value)}
+              placeholder="Type your prompt (or leave empty to see metaprompt)"
+              className="w-full h-32 p-4 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowExamples(!showExamples)}
+              className="flex items-center gap-2"
+            >
+              Prompt Examples
+              {showExamples ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+
+            {showExamples && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {PROMPT_EXAMPLES.map((example, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleExampleClick(example)}
+                    className="text-left p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm"
+                  >
+                    {example}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <Button
+              onClick={handleAutomaticMetaprompt}
+              disabled={isAnalyzing}
+              className={cn("w-full", getButtonClass(automaticButtonState))}
+            >
+              {isAnalyzing ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Analyzing...
+                </>
+              ) : (
+                'Automatic Choice for Refinement Method'
+              )}
+            </Button>
+            
+            {metaPromptAnalysis && (
+              <div className="prose dark:prose-invert max-w-none">
+                <div dangerouslySetInnerHTML={{ __html: metaPromptAnalysis.replace(/\n/g, '<br>') }} />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Meta Container */}
+        <Card>
+          <CardContent className="space-y-4 pt-6">
+            <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg text-center">
+              <p className="text-gray-600 dark:text-gray-400">Choose Meta Prompt</p>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2">
+              {REFINEMENT_METHODS.map((method) => (
+                <button
+                  key={method.id}
+                  onClick={() => setMetaPromptChoice(method.id)}
+                  className={cn(
+                    "p-3 rounded-lg border text-sm font-medium transition-all",
+                    metaPromptChoice === method.id
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-600"
+                  )}
+                >
+                  {method.label}
+                </button>
+              ))}
+            </div>
+
+            <Button
+              onClick={handleRefinePrompt}
+              disabled={isRefining}
+              className={cn("w-full", getButtonClass(refineButtonState))}
+            >
+              {isRefining ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Refining...
+                </>
+              ) : (
+                'Refine Prompt'
+              )}
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowExplanation(!showExplanation)}
+              className="flex items-center gap-2"
+            >
+              <Info className="h-4 w-4" />
+              Metaprompt Explanation
+              {showExplanation ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+
+            {showExplanation && (
+              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <p className="text-sm">
+                  Metaprompts are structured templates that guide the refinement process. Each method has specific strengths and use cases.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Analysis Container */}
+        {(promptEvaluation || refinedPrompt || explanationOfRefinements) && (
+          <Card>
+            <CardContent className="space-y-4 pt-6">
+              {promptEvaluation && (
+                <div className="prose dark:prose-invert max-w-none">
+                  <div dangerouslySetInnerHTML={{ __html: promptEvaluation.replace(/\n/g, '<br>') }} />
+                </div>
+              )}
+              
+              {refinedPrompt && (
+                <>
+                  <h3 className="text-lg font-semibold">Refined Prompt</h3>
+                  <div className="relative">
+                    <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-900">
+                      <pre className="whitespace-pre-wrap font-mono text-sm">
+                        {refinedPrompt}
+                      </pre>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCopy}
+                      className="absolute top-2 right-2"
+                    >
+                      {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                </>
+              )}
+              
+              {explanationOfRefinements && (
+                <div className="prose dark:prose-invert max-w-none">
+                  <div dangerouslySetInnerHTML={{ __html: explanationOfRefinements.replace(/\n/g, '<br>') }} />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Model Container */}
+        {refinedPrompt && (
+          <Card>
+            <CardContent className="space-y-4 pt-6">
+              <div className="flex items-center gap-4">
+                <select
+                  value={applyModel}
+                  onChange={(e) => setApplyModel(e.target.value)}
+                  className="flex-1 p-2 border rounded-lg"
+                >
+                  {MODELS.map((model) => (
+                    <option key={model} value={model}>{model}</option>
+                  ))}
+                </select>
+                
+                <Button 
+                  onClick={handleApplyPrompts}
+                  disabled={isApplying}
+                  className={cn(getButtonClass(applyButtonState))}
+                >
+                  {isApplying ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Applying...
+                    </>
+                  ) : (
+                    'Apply Prompts'
+                  )}
+                </Button>
+              </div>
+
+              <h3 className="text-lg font-semibold">Prompts on Chosen Model</h3>
+              
+              {/* Tab content would go here - simplified for now */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <h4 className="font-medium text-center text-blue-600">Original Prompt Output</h4>
+                  <div className="border rounded-lg p-4 h-64 overflow-y-auto bg-white dark:bg-gray-900">
+                    <pre className="text-sm whitespace-pre-wrap">{originalOutput || 'Output will appear here'}</pre>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <h4 className="font-medium text-center text-blue-600">Refined Prompt Output</h4>
+                  <div className="border rounded-lg p-4 h-64 overflow-y-auto bg-white dark:bg-gray-900">
+                    <pre className="text-sm whitespace-pre-wrap">{refinedOutput || 'Output will appear here'}</pre>
+                  </div>
+                </div>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowFullResponse(!showFullResponse)}
+                className="flex items-center gap-2"
+              >
+                Full Response JSON
+                {showFullResponse ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </Button>
+
+              {showFullResponse && fullResponseJson && (
+                <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-900 overflow-x-auto">
+                  <pre className="text-xs font-mono">{JSON.stringify(fullResponseJson, null, 2)}</pre>
+                </div>
+              )}
+
+              {/* Output Comparison Graphs */}
+              {originalOutput && refinedOutput && (
+                <OutputComparison 
+                  originalOutput={originalOutput}
+                  refinedOutput={refinedOutput}
+                />
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Footer */}
+        <div className="text-center text-sm text-gray-500 space-x-4 pb-6">
+          <span>Use via API 🔌</span>
+          <span>•</span>
+          <span>Construit avec Gradio 😊</span>
+        </div>
+      </div>
+    </div>
+  );
+};

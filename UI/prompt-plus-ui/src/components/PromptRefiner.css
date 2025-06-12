@@ -1,0 +1,36 @@
+/* Button state styles for PromptRefiner */
+.button-highlight {
+  background-color: rgb(249 115 22) !important; /* orange-500 */
+  color: white !important;
+}
+
+.button-highlight:hover {
+  background-color: rgb(234 88 12) !important; /* orange-600 */
+}
+
+.button-completed {
+  background-color: rgb(34 197 94) !important; /* green-500 */
+  color: white !important;
+}
+
+.button-completed:hover {
+  background-color: rgb(22 163 74) !important; /* green-600 */
+}
+
+.button-waiting {
+  background-color: rgb(209 213 219) !important; /* gray-300 */
+  color: rgb(75 85 99) !important; /* gray-600 */
+}
+
+.button-waiting:hover {
+  background-color: rgb(156 163 175) !important; /* gray-400 */
+}
+
+.button-active {
+  background-color: rgb(59 130 246) !important; /* blue-500 */
+  color: white !important;
+}
+
+.button-active:hover {
+  background-color: rgb(37 99 235) !important; /* blue-600 */
+}
