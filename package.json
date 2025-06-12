@@ -46,8 +46,12 @@
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
     "clean": "rm -rf dist/",
-    "prepublishOnly": "npm run clean && npm run build",
+    "prepublishOnly": "npm run clean && npm run build && npm run test",
+    "postpublish": "git push && git push --tags",
     "test": "npm run build && node dist/index.js --help || echo 'Server builds successfully'",
+    "test:integration": "jest test/integration.test.ts",
+    "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
     "ui": "cd UI && ./start-ui.sh",
     "ui:bridge": "node UI/mcp-http-bridge.cjs",
     "ui:dev": "cd UI/prompt-plus-ui && npm run dev"

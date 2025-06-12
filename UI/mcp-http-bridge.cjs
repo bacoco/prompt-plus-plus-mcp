@@ -31,7 +31,57 @@ const io = new Server(httpServer, {
 });
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
+
+// Security headers
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
+
+// Request monitoring
+const requestCounts = new Map();
+const requestDurations = new Map();
+
+app.use((req, res, next) => {
+  const startTime = Date.now();
+  const endpoint = `${req.method} ${req.path}`;
+  
+  // Track request count
+  requestCounts.set(endpoint, (requestCounts.get(endpoint) || 0) + 1);
+  
+  // Track response time
+  res.on('finish', () => {
+    const duration = Date.now() - startTime;
+    const durations = requestDurations.get(endpoint) || [];
+    durations.push(duration);
+    if (durations.length > 100) durations.shift(); // Keep last 100
+    requestDurations.set(endpoint, durations);
+  });
+  
+  next();
+});
+
+// Input validation middleware
+const validatePrompt = (req, res, next) => {
+  const { prompt } = req.body;
+  
+  if (!prompt || typeof prompt !== 'string') {
+    return res.status(400).json({ error: 'Invalid prompt: must be a non-empty string' });
+  }
+  
+  if (prompt.length > 10000) {
+    return res.status(400).json({ error: 'Prompt too long: maximum 10,000 characters' });
+  }
+  
+  // Sanitize prompt (remove potential script injections)
+  req.body.prompt = prompt.trim();
+  
+  next();
+};
 
 let mcpProcess = null;
 let mcpBuffer = '';
@@ -386,6 +436,31 @@ app.post('/refine', async (req, res) => {
   }
 });
 
+// Performance metrics endpoint
+app.get('/metrics/performance', (req, res) => {
+  const metrics = {};
+  
+  // Calculate average response times
+  for (const [endpoint, durations] of requestDurations.entries()) {
+    if (durations.length > 0) {
+      metrics[endpoint] = {
+        count: requestCounts.get(endpoint) || 0,
+        avgDuration: Math.round(durations.reduce((a, b) => a + b, 0) / durations.length),
+        minDuration: Math.min(...durations),
+        maxDuration: Math.max(...durations)
+      };
+    }
+  }
+  
+  res.json({
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    requestMetrics: metrics,
+    mcpConnected: mcpProcess !== null,
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.get('/metrics', async (req, res) => {
   try {
     const result = await sendMCPRequest({
@@ -473,7 +548,7 @@ app.post('/mcp/prompt', async (req, res) => {
 });
 
 // Automatic metaprompt selection endpoint
-app.post('/automatic-metaprompt', async (req, res) => {
+app.post('/automatic-metaprompt', validatePrompt, async (req, res) => {
   try {
     const { prompt, routerTemplate } = req.body;
     
@@ -568,7 +643,7 @@ app.post('/automatic-metaprompt', async (req, res) => {
 });
 
 // Refine with specific strategy
-app.post('/refine-with-strategy', async (req, res) => {
+app.post('/refine-with-strategy', validatePrompt, async (req, res) => {
   try {
     const { prompt, strategy } = req.body;
     console.log('Refining with strategy:', strategy, 'prompt:', prompt);
