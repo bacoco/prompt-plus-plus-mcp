@@ -16,53 +16,20 @@ import { Button } from './ui/button';
 import { mcpApi } from '../services/api';
 import { cn } from '../lib/utils';
 import { OutputComparison } from './OutputComparison';
-import { metapromptRouter } from '../constants/metapromptRouter';
-
-// Match the exact refinement methods from the MCP server
-const REFINEMENT_METHODS = [
-  { id: 'arpe', label: 'ARPE Framework' },
-  { id: 'star', label: 'STAR Method' },
-  { id: 'bolism', label: 'Meta-Cognitive' },
-  { id: 'done', label: 'DONE Framework' },
-  { id: 'morphosis', label: 'Structured Evolution' },
-  { id: 'physics', label: 'Scientific Method' },
-  { id: 'math', label: 'Mathematical Proof' },
-  { id: 'phor', label: 'Creative Metaphors' },
-  { id: 'verse', label: 'Inverse Thinking' },
-  { id: 'touille', label: 'Multi-Stage Analysis' }
-];
-
-// Example prompts from the MCP strategies
-const PROMPT_EXAMPLES = [
-  "Write a Python function to calculate the factorial of a number",
-  "Explain quantum computing to a 10-year-old",
-  "Create a marketing strategy for a new eco-friendly product",
-  "Design a REST API for a task management system",
-  "Write a haiku about artificial intelligence"
-];
-
-// Available models matching the Gradio app
-const MODELS = [
-  "meta-llama/Meta-Llama-3-70B-Instruct",
-  "meta-llama/Meta-Llama-3-8B-Instruct",
-  "meta-llama/Llama-3.1-70B-Instruct",
-  "meta-llama/Llama-3.1-8B-Instruct",
-  "meta-llama/Llama-3.2-3B-Instruct",
-  "meta-llama/Llama-3.2-1B-Instruct",
-  "meta-llama/Llama-2-13b-chat-hf",
-  "meta-llama/Llama-2-7b-chat-hf",
-  "HuggingFaceH4/zephyr-7b-beta",
-  "HuggingFaceH4/zephyr-7b-alpha",
-  "Qwen/Qwen2.5-72B-Instruct",
-  "Qwen/Qwen2.5-1.5B",
-  "microsoft/Phi-3.5-mini-instruct"
-];
+import type { Strategy } from '../services/api';
 
 export const PromptRefiner: React.FC = () => {
+  // Dynamic data from MCP
+  const [strategies, setStrategies] = useState<Strategy[]>([]);
+  const [refinementMethods, setRefinementMethods] = useState<Array<{id: string, label: string}>>([]);
+  const [promptExamples, setPromptExamples] = useState<string[]>([]);
+  const [models, setModels] = useState<string[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
+  
   // State matching the Gradio app
   const [promptText, setPromptText] = useState('');
-  const [metaPromptChoice, setMetaPromptChoice] = useState(REFINEMENT_METHODS[0].id);
-  const [applyModel, setApplyModel] = useState(MODELS[MODELS.length - 1]); // Default to last model
+  const [metaPromptChoice, setMetaPromptChoice] = useState('arpe');
+  const [applyModel, setApplyModel] = useState(''); // Will be set after models load
   const [metaPromptAnalysis, setMetaPromptAnalysis] = useState('');
   const [promptEvaluation, setPromptEvaluation] = useState('');
   const [refinedPrompt, setRefinedPrompt] = useState('');
@@ -86,6 +53,78 @@ export const PromptRefiner: React.FC = () => {
   const [automaticButtonState, setAutomaticButtonState] = useState('highlight');
   const [refineButtonState, setRefineButtonState] = useState('waiting');
   const [applyButtonState, setApplyButtonState] = useState('waiting');
+
+  // Load strategies and extract data on mount
+  useEffect(() => {
+    loadStrategiesData();
+  }, []);
+
+  const loadStrategiesData = async () => {
+    try {
+      setLoadingData(true);
+      const strategiesData = await mcpApi.getStrategies();
+      setStrategies(strategiesData);
+      
+      // Extract refinement methods from core_strategies category
+      const coreStrategies = strategiesData.filter(s => s.category === 'core_strategies');
+      const methods = coreStrategies.map(s => ({
+        id: s.id,
+        label: s.name
+      }));
+      setRefinementMethods(methods);
+      
+      // Set default metaprompt choice
+      if (methods.length > 0 && !metaPromptChoice) {
+        setMetaPromptChoice(methods[0].id);
+      }
+      
+      // Extract example prompts from strategies that have examples
+      const examples: string[] = [];
+      strategiesData.forEach(strategy => {
+        if (strategy.content?.examples && Array.isArray(strategy.content.examples)) {
+          strategy.content.examples.forEach((ex: any) => {
+            if (typeof ex === 'string' && !examples.includes(ex)) {
+              examples.push(ex);
+            } else if (ex.prompt && !examples.includes(ex.prompt)) {
+              examples.push(ex.prompt);
+            }
+          });
+        }
+      });
+      
+      // If no examples found, use some defaults
+      if (examples.length === 0) {
+        examples.push(
+          "Write a Python function to calculate the factorial of a number",
+          "Explain quantum computing to a 10-year-old",
+          "Create a marketing strategy for a new eco-friendly product",
+          "Design a REST API for a task management system",
+          "Write a haiku about artificial intelligence"
+        );
+      }
+      
+      setPromptExamples(examples.slice(0, 5)); // Limit to 5 examples
+      
+      // For models, we'll use a placeholder message since they should come from MCP
+      const defaultModels = [
+        "meta-llama/Meta-Llama-3-70B-Instruct",
+        "meta-llama/Llama-3.1-70B-Instruct",
+        "meta-llama/Llama-3.2-3B-Instruct",
+        "microsoft/Phi-3.5-mini-instruct"
+      ];
+      setModels(defaultModels);
+      setApplyModel(defaultModels[defaultModels.length - 1]);
+      
+    } catch (error) {
+      console.error('Failed to load strategies:', error);
+      // Set some defaults on error
+      setRefinementMethods([{ id: 'arpe', label: 'ARPE Framework' }]);
+      setPromptExamples(["Write a simple example prompt"]);
+      setModels(["No models available"]);
+    } finally {
+      setLoadingData(false);
+    }
+  };
 
   // Clear outputs when prompt changes (matching Gradio behavior)
   useEffect(() => {
@@ -266,6 +305,17 @@ export const PromptRefiner: React.FC = () => {
     }
   };
 
+  if (loadingData) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading strategies from MCP server...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-full overflow-y-auto">
       <div className="max-w-7xl mx-auto p-6 space-y-6">
@@ -302,7 +352,7 @@ export const PromptRefiner: React.FC = () => {
 
             {showExamples && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {PROMPT_EXAMPLES.map((example, i) => (
+                {promptExamples.map((example, i) => (
                   <button
                     key={i}
                     onClick={() => handleExampleClick(example)}
@@ -345,7 +395,7 @@ export const PromptRefiner: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2">
-              {REFINEMENT_METHODS.map((method) => (
+              {refinementMethods.map((method) => (
                 <button
                   key={method.id}
                   onClick={() => setMetaPromptChoice(method.id)}
@@ -447,9 +497,13 @@ export const PromptRefiner: React.FC = () => {
                   onChange={(e) => setApplyModel(e.target.value)}
                   className="flex-1 p-2 border rounded-lg"
                 >
-                  {MODELS.map((model) => (
-                    <option key={model} value={model}>{model}</option>
-                  ))}
+                  {models.length === 0 ? (
+                    <option value="">No models configured - check MCP server</option>
+                  ) : (
+                    models.map((model) => (
+                      <option key={model} value={model}>{model}</option>
+                    ))
+                  )}
                 </select>
                 
                 <Button 

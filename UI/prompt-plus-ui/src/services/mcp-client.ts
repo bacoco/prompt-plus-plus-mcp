@@ -80,9 +80,6 @@ export class MCPClient {
         description: s.description,
         category: s.category,
         content: s,
-        usageCount: Math.floor(Math.random() * 100), // Mock for now
-        avgResponseTime: Math.floor(Math.random() * 200) + 50,
-        successRate: 0.8 + Math.random() * 0.2
       }));
     } catch (error) {
       console.error('Failed to get strategies:', error);
@@ -111,9 +108,6 @@ export class MCPClient {
         description: strategy.description,
         category: strategy.category,
         content: strategy,
-        usageCount: Math.floor(Math.random() * 100),
-        avgResponseTime: Math.floor(Math.random() * 200) + 50,
-        successRate: 0.8 + Math.random() * 0.2
       };
     } catch (error) {
       console.error('Failed to get strategy:', error);
@@ -177,18 +171,14 @@ export class MCPClient {
     
     return {
       totalStrategies: strategies.length,
-      totalRefinements: Math.floor(Math.random() * 1000) + 500,
-      avgResponseTime: Math.floor(Math.random() * 100) + 50,
+      totalRefinements: 0,
+      avgResponseTime: 0,
       topStrategies: strategies.slice(0, 5).map(s => ({
         id: s.id,
         name: s.name,
-        usageCount: s.usageCount || 0
+        count: 0
       })),
-      recentActivity: [
-        { time: '2 mins ago', action: 'Refined', strategy: 'ARPE Framework' },
-        { time: '5 mins ago', action: 'Refined', strategy: 'STAR Method' },
-        { time: '10 mins ago', action: 'Refined', strategy: 'Meta-Cognitive' },
-      ]
+      recentActivity: []
     };
   }
 }

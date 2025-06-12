@@ -23,25 +23,80 @@ interface StrategyCardProps {
 }
 
 const getCategoryIcon = (category: string) => {
+  // Format category name for matching
+  const formattedCategory = category
+    .replace(/_/g, ' ')
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+  
+  // Map both formatted and raw category names
   const icons: Record<string, React.ReactNode> = {
     'Core Strategies': <Layers className="h-5 w-5" />,
+    'core_strategies': <Layers className="h-5 w-5" />,
     'Advanced Thinking': <Brain className="h-5 w-5" />,
+    'advanced_thinking': <Brain className="h-5 w-5" />,
     'Software Development': <Code2 className="h-5 w-5" />,
+    'software_development': <Code2 className="h-5 w-5" />,
     'Ai Core Principles': <Target className="h-5 w-5" />,
-    'Vibe Coding Rules': <Sparkles className="h-5 w-5" />
+    'ai_core_principles': <Target className="h-5 w-5" />,
+    'Vibe Coding Rules': <Sparkles className="h-5 w-5" />,
+    'vibe_coding_rules': <Sparkles className="h-5 w-5" />
   };
-  return icons[category] || <Layers className="h-5 w-5" />;
+  return icons[category] || icons[formattedCategory] || <Layers className="h-5 w-5" />;
 };
 
 const getCategoryColor = (category: string) => {
+  // Format category name for matching
+  const formattedCategory = category
+    .replace(/_/g, ' ')
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+  
+  // Map both formatted and raw category names
   const colors: Record<string, string> = {
     'Core Strategies': 'from-blue-500 to-blue-600',
+    'core_strategies': 'from-blue-500 to-blue-600',
     'Advanced Thinking': 'from-purple-500 to-purple-600',
+    'advanced_thinking': 'from-purple-500 to-purple-600',
     'Software Development': 'from-green-500 to-green-600',
+    'software_development': 'from-green-500 to-green-600',
     'Ai Core Principles': 'from-orange-500 to-orange-600',
-    'Vibe Coding Rules': 'from-pink-500 to-pink-600'
+    'ai_core_principles': 'from-orange-500 to-orange-600',
+    'Vibe Coding Rules': 'from-pink-500 to-pink-600',
+    'vibe_coding_rules': 'from-pink-500 to-pink-600'
   };
-  return colors[category] || 'from-gray-500 to-gray-600';
+  return colors[category] || colors[formattedCategory] || generateDynamicColor(category);
+};
+
+// Generate consistent colors for unknown categories
+const generateDynamicColor = (category: string) => {
+  const colorPairs = [
+    'from-indigo-500 to-indigo-600',
+    'from-red-500 to-red-600',
+    'from-yellow-500 to-yellow-600',
+    'from-teal-500 to-teal-600',
+    'from-gray-500 to-gray-600'
+  ];
+  
+  // Generate a consistent index based on category name
+  let hash = 0;
+  for (let i = 0; i < category.length; i++) {
+    hash = ((hash << 5) - hash) + category.charCodeAt(i);
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  
+  return colorPairs[Math.abs(hash) % colorPairs.length];
+};
+
+// Format category name for display
+const formatCategoryName = (category: string) => {
+  return category
+    .replace(/_/g, ' ')
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 };
 
 export const StrategyCard: React.FC<StrategyCardProps> = ({ 
@@ -82,7 +137,7 @@ export const StrategyCard: React.FC<StrategyCardProps> = ({
               <CardTitle className="text-lg line-clamp-1">{strategy.name}</CardTitle>
             </div>
             <CardDescription className="text-xs uppercase tracking-wide text-gray-500">
-              {strategy.category}
+              {formatCategoryName(strategy.category)}
             </CardDescription>
           </div>
           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -116,33 +171,7 @@ export const StrategyCard: React.FC<StrategyCardProps> = ({
               <span>{Object.keys(strategy.content.variables).length} vars</span>
             </div>
           )}
-          {strategy.usageCount && (
-            <div className="flex items-center gap-1 text-gray-500">
-              <Target className="h-3 w-3" />
-              <span>{strategy.usageCount} uses</span>
-            </div>
-          )}
         </div>
-
-        {/* Success Rate Indicator */}
-        {strategy.successRate && (
-          <div className="w-full">
-            <div className="flex justify-between text-xs mb-1">
-              <span className="text-gray-500">Success Rate</span>
-              <span className="font-medium">{(strategy.successRate * 100).toFixed(0)}%</span>
-            </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
-              <div 
-                className={cn(
-                  'h-full rounded-full transition-all',
-                  strategy.successRate > 0.9 ? 'bg-green-500' :
-                  strategy.successRate > 0.7 ? 'bg-yellow-500' : 'bg-red-500'
-                )}
-                style={{ width: `${strategy.successRate * 100}%` }}
-              />
-            </div>
-          </div>
-        )}
 
         {/* Preview Tags */}
         <div className="flex flex-wrap gap-1">

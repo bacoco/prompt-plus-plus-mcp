@@ -21,7 +21,6 @@ interface StrategyFiltersProps {
     hasVariables: boolean | null;
     hasExamples: boolean | null;
     complexity: string | null;
-    minSuccessRate: number | null;
   };
   onFilterChange: (filters: any) => void;
   className?: string;
@@ -33,7 +32,18 @@ export const StrategyFilters: React.FC<StrategyFiltersProps> = ({
   onFilterChange,
   className
 }) => {
+  // Dynamically extract categories from strategies
   const categories = ['all', ...Array.from(new Set(strategies.map(s => s.category)))];
+  
+  // Format category names for display
+  const formatCategoryName = (category: string) => {
+    if (category === 'all') return 'All Categories';
+    return category
+      .replace(/_/g, ' ')
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
   
   const updateFilter = (key: string, value: any) => {
     onFilterChange({ ...filters, [key]: value });
@@ -46,7 +56,6 @@ export const StrategyFilters: React.FC<StrategyFiltersProps> = ({
       hasVariables: null,
       hasExamples: null,
       complexity: null,
-      minSuccessRate: null
     });
   };
 
@@ -93,7 +102,7 @@ export const StrategyFilters: React.FC<StrategyFiltersProps> = ({
               onClick={() => updateFilter('category', category)}
               className="text-xs"
             >
-              {category === 'all' ? 'All Categories' : category}
+              {formatCategoryName(category)}
             </Button>
           ))}
         </div>
@@ -161,26 +170,6 @@ export const StrategyFilters: React.FC<StrategyFiltersProps> = ({
         </div>
       </div>
 
-      {/* Success Rate Filter */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          Minimum Success Rate
-        </label>
-        <div className="grid grid-cols-3 gap-2">
-          {[70, 80, 90].map(rate => (
-            <Button
-              key={rate}
-              variant={filters.minSuccessRate === rate ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => updateFilter('minSuccessRate', filters.minSuccessRate === rate ? null : rate)}
-              className="text-xs"
-            >
-              <CheckCircle2 className="h-3 w-3 mr-1" />
-              {rate}%+
-            </Button>
-          ))}
-        </div>
-      </div>
 
       {/* Results Summary */}
       <div className="pt-2 border-t">
@@ -195,7 +184,6 @@ export const StrategyFilters: React.FC<StrategyFiltersProps> = ({
               const complexity = promptLength > 1000 ? 'High' : promptLength > 500 ? 'Medium' : 'Low';
               if (complexity !== filters.complexity) return false;
             }
-            if (filters.minSuccessRate && (!s.successRate || s.successRate * 100 < filters.minSuccessRate)) return false;
             return true;
           }).length} of {strategies.length} strategies
         </p>

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { io, Socket } from 'socket.io-client';
-import { metapromptRouter } from '../constants/metapromptRouter';
+// Removed unused import
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const WS_URL = import.meta.env.VITE_WS_URL || 'http://localhost:3002';
@@ -18,9 +18,6 @@ export interface Strategy {
   description: string;
   category: string;
   content: any;
-  usageCount?: number;
-  avgResponseTime?: number;
-  successRate?: number;
 }
 
 export interface Collection {
@@ -91,129 +88,91 @@ class MCPApiService {
     return response.data;
   }
 
-  // Automatic metaprompt selection (matching prompt_refiner.py)
+  // Automatic metaprompt selection
   async automaticMetaprompt(prompt: string): Promise<AutomaticMetapromptResult> {
     try {
-      // This simulates the automatic_metaprompt function from prompt_refiner.py
-      // In production, this would call the actual MCP server
-      const response = await api.post('/automatic-metaprompt', {
-        prompt,
-        routerTemplate: metapromptRouter.replace('[Insert initial prompt here]', prompt)
+      const response = await api.post('/mcp/prompt', {
+        name: 'auto_refine',
+        arguments: {
+          user_prompt: prompt
+        }
       });
       
-      // Parse the response to match the expected format
-      const result = response.data;
+      // Parse the auto_refine response
+      let content = response.data.messages?.[0]?.content || '';
       
-      // Format the analysis markdown like the Python version
-      const analysis = `
+      // Handle MCP content format (could be string or object)
+      if (typeof content === 'object' && content.text) {
+        content = content.text;
+      } else if (typeof content === 'object' && content.type === 'text') {
+        content = content.text || '';
+      }
+      
+      // Ensure content is a string
+      content = String(content);
+      
+      // Extract the recommended metaprompt key from the response
+      // The response should contain analysis and recommendation
+      let recommendedKey = 'arpe'; // default
+      let analysis = content;
+      
+      // Try to parse structured response if available
+      if (response.data.recommended_metaprompt) {
+        recommendedKey = response.data.recommended_metaprompt.key;
+        
+        // Format the analysis markdown
+        const result = response.data;
+        analysis = `
 #### Selected MetaPrompt
 - **Primary Choice**: ${result.recommended_metaprompt.name}
 - *Description*: ${result.recommended_metaprompt.description}
 - *Why This Choice*: ${result.recommended_metaprompt.explanation}
-- *Similar Sample*: ${result.recommended_metaprompt.similar_sample}
-- *Customized Sample*: ${result.recommended_metaprompt.customized_sample}
+- *Similar Sample*: ${result.recommended_metaprompt.similar_sample || 'N/A'}
+- *Customized Sample*: ${result.recommended_metaprompt.customized_sample || 'N/A'}
 
 #### Alternative Option
-- **Secondary Choice**: ${result.alternative_recommendation.name}
-- *Why Consider This*: ${result.alternative_recommendation.explanation}
+- **Secondary Choice**: ${result.alternative_recommendation?.name || 'N/A'}
+- *Why Consider This*: ${result.alternative_recommendation?.explanation || 'N/A'}
 `;
+      } else {
+        // Try to extract key from content if not structured
+        try {
+          // Look for SELECTED STRATEGY in the response
+          const strategyMatch = content.match(/SELECTED STRATEGY:\s*([^\n]+)/i);
+          if (strategyMatch) {
+            const strategyName = strategyMatch[1].trim();
+            // Try to find matching key from strategy name
+            const keyFromName = strategyName.toLowerCase()
+              .replace(/[^a-z0-9]+/g, '_')
+              .replace(/^_|_$/g, '');
+            recommendedKey = keyFromName || 'arpe';
+          }
+          
+          // Also try to extract reasoning and improvements
+          const reasoningMatch = content.match(/REASONING:\s*([\s\S]*?)(?=REFINED PROMPT:|KEY IMPROVEMENTS:|$)/i);
+          const improvementsMatch = content.match(/KEY IMPROVEMENTS:\s*([\s\S]*?)$/i);
+          
+          if (reasoningMatch || improvementsMatch) {
+            analysis = `#### Auto-Selected Strategy\n${content}`;
+          }
+        } catch (e) {
+          // If parsing fails, use the content as-is
+          console.warn('Failed to parse auto_refine response:', e);
+        }
+      }
       
       return {
         analysis,
-        recommendedKey: result.recommended_metaprompt.key
+        recommendedKey
       };
     } catch (error) {
-      // For now, use local logic as fallback (will be replaced with actual MCP call)
-      return this.localAutomaticMetaprompt(prompt);
+      console.error('Failed to get automatic metaprompt:', error);
+      throw new Error(`Failed to analyze prompt: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
-  // Local fallback for automatic metaprompt selection
-  private async localAutomaticMetaprompt(prompt: string): Promise<AutomaticMetapromptResult> {
-    // This is a simplified version that mimics the router behavior
-    const promptLower = prompt.toLowerCase();
-    
-    let recommendedKey = 'arpe';
-    let primaryChoice = { name: 'ARPE Framework', description: '', explanation: '' };
-    let alternativeChoice = { name: 'STAR Method', explanation: '' };
-    
-    if (promptLower.includes('comprehensive') || promptLower.includes('curriculum') || promptLower.includes('detailed analysis')) {
-      recommendedKey = 'comprehensive_multistage';
-      primaryChoice = {
-        name: 'Comprehensive Multi-Stage Refinement',
-        description: 'Use this method for a thorough, multi-stage refinement process.',
-        explanation: 'Your prompt requires in-depth analysis and exploration of alternatives.'
-      };
-    } else if (promptLower.includes('explain') || promptLower.includes('describe')) {
-      recommendedKey = 'star';
-      primaryChoice = {
-        name: 'STAR Method',
-        description: 'Structured approach for explanatory tasks.',
-        explanation: 'Based on the explanatory nature of your prompt, the STAR method provides clear structure.'
-      };
-    } else if (promptLower.includes('create') || promptLower.includes('design')) {
-      recommendedKey = 'morphosis';
-      primaryChoice = {
-        name: 'Structured Evolution',
-        description: 'Iterative refinement for creative tasks.',
-        explanation: 'For creative and design tasks, Structured Evolution provides iterative refinement.'
-      };
-    }
-    
-    const analysis = `
-#### Selected MetaPrompt
-- **Primary Choice**: ${primaryChoice.name}
-- *Description*: ${primaryChoice.description}
-- *Why This Choice*: ${primaryChoice.explanation}
-- *Similar Sample*: Based on keyword analysis
-- *Customized Sample*: Tailored to your specific prompt
-
-#### Alternative Option
-- **Secondary Choice**: ${alternativeChoice.name}
-- *Why Consider This*: ${alternativeChoice.explanation || 'Provides an alternative structured approach'}
-`;
-    
-    return { analysis, recommendedKey };
-  }
-
-  // Refine prompt with specific strategy (matching prompt_refiner.py)
+  // Refine prompt with specific strategy
   async refinePromptWithStrategy(prompt: string, strategy: string): Promise<PromptRefinerResult> {
-    try {
-      const response = await api.post(`/refine-with-strategy`, {
-        prompt,
-        strategy
-      });
-      
-      return {
-        initialPromptEvaluation: response.data.initialPromptEvaluation,
-        refinedPrompt: response.data.refinedPrompt,
-        explanationOfRefinements: response.data.explanationOfRefinements,
-        fullResponse: response.data.fullResponse
-      };
-    } catch (error) {
-      // Fallback to MCP bridge
-      return this.refinePromptViaMCP(prompt, strategy);
-    }
-  }
-
-  // Apply prompt to model (matching prompt_refiner.py)
-  async applyPrompt(prompt: string, model: string): Promise<string> {
-    try {
-      const response = await api.post('/apply-prompt', {
-        prompt,
-        model,
-        systemPrompt: 'You are a markdown formatting expert.'
-      });
-      
-      return response.data.output;
-    } catch (error) {
-      // Fallback response for demo
-      return `**Model Response (${model})**\n\n${prompt}\n\n*This is a simulated response. In production, this would be the actual model output formatted in markdown.*`;
-    }
-  }
-
-  // Fallback method using MCP bridge
-  private async refinePromptViaMCP(prompt: string, strategy: string): Promise<PromptRefinerResult> {
     try {
       const response = await api.post('/mcp/prompt', {
         name: `refine_with_${strategy}`,
@@ -222,18 +181,104 @@ class MCPApiService {
         }
       });
       
-      // Parse MCP response format
-      const content = response.data.messages?.[0]?.content || '';
-      const sections = content.split('\n\n');
+      // Parse MCP response
+      let content = response.data.messages?.[0]?.content || '';
+      
+      // Handle MCP content format (could be string or object)
+      if (typeof content === 'object' && content.text) {
+        content = content.text;
+      } else if (typeof content === 'object' && content.type === 'text') {
+        content = content.text || '';
+      }
+      
+      // Ensure content is a string
+      content = String(content);
+      
+      // Try to parse structured sections
+      let initialPromptEvaluation = '';
+      let refinedPrompt = '';
+      let explanationOfRefinements = '';
+      
+      // Look for section markers in the response
+      const evaluationMatch = content.match(/(?:Initial Prompt Evaluation|Analysis):?\s*([\s\S]*?)(?=Refined Prompt:|$)/i);
+      const refinedMatch = content.match(/(?:Refined Prompt|Improved Prompt):?\s*([\s\S]*?)(?=Explanation|Refinements:|$)/i);
+      const explanationMatch = content.match(/(?:Explanation of Refinements|Refinements|Changes):?\s*([\s\S]*?)$/i);
+      
+      if (evaluationMatch) {
+        initialPromptEvaluation = evaluationMatch[1].trim();
+      } else {
+        // Fallback: take first paragraph
+        const firstParagraph = content.split('\n\n')[0];
+        initialPromptEvaluation = firstParagraph || 'Prompt analysis completed.';
+      }
+      
+      if (refinedMatch) {
+        refinedPrompt = refinedMatch[1].trim();
+      } else {
+        // Fallback: look for quoted text or second paragraph
+        const quotedMatch = content.match(/"([^"]+)"/);
+        if (quotedMatch) {
+          refinedPrompt = quotedMatch[1];
+        } else {
+          const paragraphs = content.split('\n\n');
+          refinedPrompt = paragraphs[1] || prompt;
+        }
+      }
+      
+      if (explanationMatch) {
+        explanationOfRefinements = explanationMatch[1].trim();
+      } else {
+        // Fallback: take last paragraph
+        const paragraphs = content.split('\n\n');
+        explanationOfRefinements = paragraphs[paragraphs.length - 1] || 'Refinement process completed.';
+      }
       
       return {
-        initialPromptEvaluation: sections[0] || 'Prompt analysis completed.',
-        refinedPrompt: sections[1] || prompt,
-        explanationOfRefinements: sections[2] || 'Refinement process completed.',
+        initialPromptEvaluation,
+        refinedPrompt,
+        explanationOfRefinements,
         fullResponse: response.data
       };
     } catch (error) {
-      throw new Error(`Failed to refine prompt: ${error}`);
+      console.error('Failed to refine prompt:', error);
+      throw new Error(`Failed to refine prompt: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  // Apply prompt to model
+  async applyPrompt(prompt: string, model: string): Promise<string> {
+    try {
+      const response = await api.post('/mcp/prompt', {
+        name: 'apply_prompt',
+        arguments: {
+          prompt,
+          model
+        }
+      });
+      
+      // Extract the model response
+      let content = response.data.messages?.[0]?.content || '';
+      
+      // Handle MCP content format (could be string or object)
+      if (typeof content === 'object' && content.text) {
+        content = content.text;
+      } else if (typeof content === 'object' && content.type === 'text') {
+        content = content.text || '';
+      }
+      
+      // Ensure content is a string
+      content = String(content);
+      
+      return content;
+    } catch (error) {
+      console.error('Failed to apply prompt:', error);
+      // Return informative error message
+      return `**Error: Model Integration Not Available**\n\n` +
+             `The prompt application feature requires:\n` +
+             `1. An active MCP server connection\n` +
+             `2. The 'apply_prompt' tool to be available\n` +
+             `3. Access to the specified model (${model})\n\n` +
+             `Please ensure your MCP server is running and properly configured.`;
     }
   }
 

@@ -342,6 +342,7 @@ export class PromptPlusMCPServer {
       strategiesInfo[key] = {
         name: strategy.name,
         description: strategy.description,
+        category: strategy.category || strategy.customCategory || 'uncategorized',
         prompt_name: `refine_with_${key}`,
         examples: strategy.examples.slice(0, 2),
         complexity: strategy.complexity,

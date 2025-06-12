@@ -159,7 +159,8 @@ app.get('/strategies', async (req, res) => {
           strategies = Object.entries(parsed.strategies).map(([key, strategy]) => ({
             ...strategy,
             id: key,
-            category: strategy.category || 'uncategorized'
+            key: key,
+            category: strategy.category || strategy.customCategory || 'uncategorized'
           }));
         }
       } else if (typeof parsed === 'object') {
@@ -167,7 +168,8 @@ app.get('/strategies', async (req, res) => {
         strategies = Object.entries(parsed).map(([key, strategy]) => ({
           ...strategy,
           id: key,
-          category: strategy.category || 'uncategorized'
+          key: key,
+          category: strategy.category || strategy.customCategory || 'uncategorized'
         }));
       }
     } catch (e) {
@@ -177,15 +179,12 @@ app.get('/strategies', async (req, res) => {
     
     // Ensure each strategy has required fields
     const enrichedStrategies = strategies.map(s => ({
-      id: s.id || `${s.category}/${s.name}`.toLowerCase().replace(/\s+/g, '-'),
+      id: s.id || s.key || `${s.category || 'uncategorized'}/${s.name}`.toLowerCase().replace(/\s+/g, '-'),
       name: s.name || 'Unnamed Strategy',
       description: s.description || 'No description available',
-      category: s.category || 'uncategorized',
+      category: s.category || s.customCategory || 'uncategorized',
       content: s.content || s,
-      examples: Array.isArray(s.examples) ? s.examples : (s.examples ? [s.examples] : []),
-      usageCount: Math.floor(Math.random() * 100),
-      avgResponseTime: Math.floor(Math.random() * 200) + 50,
-      successRate: 0.8 + Math.random() * 0.2
+      examples: Array.isArray(s.examples) ? s.examples : (s.examples ? [s.examples] : [])
     }));
 
     res.json(enrichedStrategies);
@@ -216,10 +215,7 @@ app.get('/strategies/:id', async (req, res) => {
     const strategy = JSON.parse(content);
     res.json({
       ...strategy,
-      id: req.params.id,
-      usageCount: Math.floor(Math.random() * 100),
-      avgResponseTime: Math.floor(Math.random() * 200) + 50,
-      successRate: 0.8 + Math.random() * 0.2
+      id: req.params.id
     });
   } catch (error) {
     console.error('Error getting strategy:', error);
@@ -251,12 +247,6 @@ app.post('/refine', async (req, res) => {
     res.json({
       refinedPrompt: refinedContent,
       strategy: strategy || 'auto-selected',
-      confidence: 0.85 + Math.random() * 0.15,
-      suggestions: [
-        'Prompt refined using MCP server',
-        'Strategic framework applied',
-        'Context and clarity enhanced'
-      ],
       refinementTime: endTime - startTime
     });
 
@@ -297,14 +287,16 @@ app.get('/strategies/search', async (req, res) => {
           strategies = Object.entries(parsed.strategies).map(([key, strategy]) => ({
             ...strategy,
             id: key,
-            category: strategy.category || 'uncategorized'
+            key: key,
+            category: strategy.category || strategy.customCategory || 'uncategorized'
           }));
         }
       } else if (typeof parsed === 'object') {
         strategies = Object.entries(parsed).map(([key, strategy]) => ({
           ...strategy,
           id: key,
-          category: strategy.category || 'uncategorized'
+          key: key,
+          category: strategy.category || strategy.customCategory || 'uncategorized'
         }));
       }
     } catch (e) {
@@ -320,15 +312,12 @@ app.get('/strategies/search', async (req, res) => {
     );
 
     res.json(filtered.map(s => ({
-      id: s.id || `${s.category}/${s.name}`.toLowerCase().replace(/\s+/g, '-'),
+      id: s.id || s.key || `${s.category || 'uncategorized'}/${s.name}`.toLowerCase().replace(/\s+/g, '-'),
       name: s.name || 'Unnamed Strategy',
       description: s.description || 'No description available',
-      category: s.category || 'uncategorized',
+      category: s.category || s.customCategory || 'uncategorized',
       content: s.content || s,
-      examples: Array.isArray(s.examples) ? s.examples : (s.examples ? [s.examples] : []),
-      usageCount: Math.floor(Math.random() * 100),
-      avgResponseTime: Math.floor(Math.random() * 200) + 50,
-      successRate: 0.8 + Math.random() * 0.2
+      examples: Array.isArray(s.examples) ? s.examples : (s.examples ? [s.examples] : [])
     })));
   } catch (error) {
     console.error('Error searching strategies:', error);
@@ -362,7 +351,7 @@ app.get('/metrics', async (req, res) => {
             ...strategy,
             id: key,
             name: strategy.name,
-            category: strategy.category || 'uncategorized'
+            category: strategy.category || strategy.customCategory || 'uncategorized'
           }));
         }
       } else if (typeof parsed === 'object') {
@@ -370,7 +359,7 @@ app.get('/metrics', async (req, res) => {
           ...strategy,
           id: key,
           name: strategy.name,
-          category: strategy.category || 'uncategorized'
+          category: strategy.category || strategy.customCategory || 'uncategorized'
         }));
       }
     } catch (e) {
@@ -380,18 +369,11 @@ app.get('/metrics', async (req, res) => {
 
     res.json({
       totalStrategies: strategies.length,
-      totalRefinements: Math.floor(Math.random() * 1000) + 500,
-      avgResponseTime: Math.floor(Math.random() * 100) + 50,
       topStrategies: strategies.slice(0, 5).map(s => ({
         id: s.id || `${s.category}/${s.name}`.toLowerCase().replace(/\s+/g, '-'),
-        name: s.name,
-        usageCount: Math.floor(Math.random() * 100)
+        name: s.name
       })),
-      recentActivity: [
-        { time: '2 mins ago', action: 'Refined', strategy: 'ARPE Framework' },
-        { time: '5 mins ago', action: 'Refined', strategy: 'STAR Method' },
-        { time: '10 mins ago', action: 'Refined', strategy: 'Meta-Cognitive' },
-      ]
+      recentActivity: []
     });
   } catch (error) {
     console.error('Error getting metrics:', error);
@@ -434,24 +416,54 @@ app.post('/automatic-metaprompt', async (req, res) => {
   try {
     const { prompt, routerTemplate } = req.body;
     
-    // For now, return mock data that matches the expected format
-    // In production, this would call the actual LLM with the router template
-    const mockResult = {
-      recommended_metaprompt: {
-        key: 'arpe',
-        name: 'ARPE Framework',
-        description: 'Versatile framework for general prompt enhancement',
-        explanation: 'Based on the nature of your prompt, ARPE provides a balanced approach',
-        similar_sample: 'General task refinement',
-        customized_sample: 'Your prompt refined with ARPE methodology'
-      },
-      alternative_recommendation: {
-        name: 'STAR Method',
-        explanation: 'Alternative structured approach for clarity'
-      }
-    };
+    if (!prompt) {
+      return res.status(400).json({ error: 'Prompt is required' });
+    }
     
-    res.json(mockResult);
+    // Call MCP server to get strategy recommendation
+    try {
+      const result = await sendMCPRequest({
+        jsonrpc: '2.0',
+        method: 'tools/call',
+        params: {
+          name: 'select_strategy',
+          arguments: {
+            prompt,
+            auto_select: true
+          }
+        }
+      });
+      
+      const content = result.content?.[0]?.text;
+      if (!content) {
+        throw new Error('No strategy recommendation received from MCP server');
+      }
+      
+      // Parse the response from MCP server
+      let recommendation;
+      try {
+        recommendation = JSON.parse(content);
+      } catch (e) {
+        // If not JSON, create a basic recommendation
+        recommendation = {
+          recommended_metaprompt: {
+            key: 'general',
+            name: 'General Strategy',
+            description: content,
+            explanation: 'Selected based on prompt analysis'
+          }
+        };
+      }
+      
+      res.json(recommendation);
+    } catch (mcpError) {
+      console.error('MCP strategy selection failed:', mcpError);
+      // Return error instead of mock data
+      return res.status(503).json({ 
+        error: 'Strategy selection service unavailable',
+        details: mcpError.message 
+      });
+    }
   } catch (error) {
     console.error('Automatic metaprompt error:', error);
     res.status(500).json({ error: error.message });
@@ -566,11 +578,40 @@ app.post('/apply-prompt', async (req, res) => {
   try {
     const { prompt, model, systemPrompt } = req.body;
     
-    // Mock response for now
-    // In production, this would call the actual model API
-    const mockOutput = `**Analysis Results**\n\n${prompt}\n\n*Model: ${model}*\n*Applied with system prompt: ${systemPrompt}*`;
+    if (!prompt) {
+      return res.status(400).json({ error: 'Prompt is required' });
+    }
     
-    res.json({ output: mockOutput });
+    // Try to call MCP server to apply the prompt
+    try {
+      const result = await sendMCPRequest({
+        jsonrpc: '2.0',
+        method: 'tools/call',
+        params: {
+          name: 'apply_prompt',
+          arguments: {
+            prompt,
+            model: model || 'default',
+            system_prompt: systemPrompt
+          }
+        }
+      });
+      
+      const content = result.content?.[0]?.text;
+      if (!content) {
+        throw new Error('No output received from MCP server');
+      }
+      
+      res.json({ output: content });
+    } catch (mcpError) {
+      console.error('MCP apply prompt failed:', mcpError);
+      // Return error instead of mock data
+      return res.status(503).json({ 
+        error: 'Prompt application service unavailable',
+        details: mcpError.message,
+        hint: 'This endpoint requires MCP server support for apply_prompt tool'
+      });
+    }
   } catch (error) {
     console.error('Apply prompt error:', error);
     res.status(500).json({ error: error.message });

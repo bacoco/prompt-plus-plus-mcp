@@ -46,16 +46,6 @@ export const StrategyDetail: React.FC<StrategyDetailProps> = ({ strategy, isOpen
               <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full text-sm">
                 {strategy.category}
               </span>
-              {strategy.usageCount && (
-                <span className="text-sm text-gray-500">
-                  Used {strategy.usageCount} times
-                </span>
-              )}
-              {strategy.successRate && (
-                <span className="text-sm text-gray-500">
-                  {(strategy.successRate * 100).toFixed(0)}% success rate
-                </span>
-              )}
             </div>
           </div>
           <div className="flex items-center gap-2">

@@ -29,7 +29,6 @@ export const StrategyExplorer: React.FC = () => {
     hasVariables: null as boolean | null,
     hasExamples: null as boolean | null,
     complexity: null as string | null,
-    minSuccessRate: null as number | null
   });
   const [filteredStrategies, setFilteredStrategies] = useState<Strategy[]>([]);
   const [detailStrategy, setDetailStrategy] = useState<Strategy | null>(null);
@@ -93,9 +92,6 @@ export const StrategyExplorer: React.FC = () => {
       });
     }
     
-    if (filters.minSuccessRate) {
-      filtered = filtered.filter(s => s.successRate && s.successRate * 100 >= filters.minSuccessRate);
-    }
 
     setFilteredStrategies(filtered);
   };
@@ -128,7 +124,6 @@ export const StrategyExplorer: React.FC = () => {
           <span className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
             {strategy.category}
           </span>
-          {strategy.usageCount && <span>Used {strategy.usageCount} times</span>}
         </div>
       </div>
       <div className="flex items-center gap-2">

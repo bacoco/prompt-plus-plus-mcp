@@ -228,8 +228,11 @@ export class StrategyManager {
     try {
       const key = file.replace('.json', '');
       
+      // Extract category name from directory path
+      const pathParts = dirPath.split('/');
+      const categoryName = pathParts[pathParts.length - 1] || 'unknown';
+      
       // For custom strategies, prefix with category to avoid conflicts
-      const categoryName = dirPath.split('/').pop() || 'unknown';
       const strategyKey = source === 'custom' ? `custom_${categoryName}_${key}` : key;
       
       // Validate required fields
@@ -244,6 +247,7 @@ export class StrategyManager {
         description: data.description || '',
         examples: Array.isArray(data.examples) ? data.examples : [],
         template: data.template,
+        category: categoryName,  // Always set category from directory name
         complexity: data.complexity,
         timeInvestment: data.time_investment,
         triggers: Array.isArray(data.triggers) ? data.triggers : undefined,
