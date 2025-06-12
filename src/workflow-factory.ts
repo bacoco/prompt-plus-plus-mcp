@@ -1,6 +1,7 @@
 import type { StrategyManager } from './strategy-manager.js';
 import type { PromptRefiner } from './prompt-refiner.js';
 import { logger } from './logger.js';
+import { llmClient } from './llm-client.js';
 
 interface WorkflowResponse {
   messages: Array<{
@@ -75,7 +76,7 @@ export class AutoRefineHandler extends BaseWorkflowHandler {
       // Get all categories metadata (will be filtered based on available strategies)
       const allCategoriesMetadata = this.strategyManager.getAllCategoriesMetadata();
       
-      const responseText = `You are an expert prompt engineer. Your task is to analyze the user's prompt and select the most appropriate strategy from ${sourceDescription} strategies, then apply it.
+      const promptForLLM = `You are an expert prompt engineer. Your task is to analyze the user's prompt and select the most appropriate strategy from ${sourceDescription} strategies, then apply it.
 
 **User's Prompt:** ${userPrompt}
 
@@ -125,7 +126,10 @@ KEY IMPROVEMENTS:
 
 **Important:** You must select and apply the strategy yourself - analyze all options and choose the one that best matches the user's prompt characteristics and requirements.`;
 
-      return this.createResponse(responseText);
+      // Send to Claude for processing
+      const response = await llmClient.sendPrompt(promptForLLM);
+      
+      return this.createResponse(response.text);
     } catch (error) {
       logger.error('Error in AutoRefineHandler', { error: error instanceof Error ? error.message : String(error) });
       throw error;
@@ -151,7 +155,7 @@ export class RefineWithHandler extends BaseWorkflowHandler {
 
       const metapromptTemplate = strategy.template.replace('[Insert initial prompt here]', userPrompt);
       
-      const responseText = `You are an expert prompt engineer. Apply the '${strategy.name}' meta-prompt template to refine the following user prompt.
+      const promptForClaude = `You are an expert prompt engineer. Apply the '${strategy.name}' meta-prompt template to refine the following user prompt.
 
 ${strategy.description}
 
@@ -165,7 +169,10 @@ ${metapromptTemplate}
 
 Remember to return your response in valid JSON format.`;
 
-      return this.createResponse(responseText);
+      // Send to Claude for processing
+      const response = await llmClient.sendPrompt(promptForClaude);
+      
+      return this.createResponse(response.text);
     } catch (error) {
       logger.error('Error in RefineWithHandler', { error: error instanceof Error ? error.message : String(error) });
       throw error;

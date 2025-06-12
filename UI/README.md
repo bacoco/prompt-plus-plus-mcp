@@ -109,8 +109,10 @@ The HTTP bridge exposes the following endpoints:
 ```
 UI/
 ├── mcp-http-bridge.cjs    # HTTP to MCP bridge server
+├── claude-processor.js    # Claude API integration for metaprompts
 ├── start-ui.sh            # Startup script
 ├── api-server.cjs         # Legacy API server (deprecated)
+├── .env.example           # Environment variable template
 └── prompt-plus-ui/        # React application
     ├── src/
     │   ├── components/    # UI components
@@ -127,6 +129,30 @@ Create a `.env` file in `UI/prompt-plus-ui/`:
 VITE_API_URL=http://localhost:3001
 VITE_WS_URL=http://localhost:3002
 ```
+
+#### Claude API Integration (Optional)
+
+To enable automatic processing of metaprompt templates, create a `.env` file in the `UI/` directory:
+
+```bash
+cp .env.example .env
+```
+
+Then add your Anthropic API key:
+```env
+ANTHROPIC_API_KEY=your_api_key_here
+```
+
+Get your API key from: https://console.anthropic.com/
+
+With the API key configured:
+- Metaprompt templates will be automatically processed through Claude
+- You'll get actual refined prompts instead of just templates
+- Processing happens seamlessly in the background
+
+Without the API key:
+- Templates will be displayed as-is
+- You can manually copy and process them with Claude
 
 ### Building for Production
 

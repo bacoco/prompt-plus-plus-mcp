@@ -6,6 +6,21 @@ const { spawn } = require('child_process');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 
+// Import claude processor if API key is available
+let processMetaprompt, isMetapromptTemplate;
+(async () => {
+  try {
+    const claudeProcessor = await import('./claude-processor.js');
+    processMetaprompt = claudeProcessor.processMetaprompt;
+    isMetapromptTemplate = claudeProcessor.isMetapromptTemplate;
+    console.log('Claude processor loaded successfully');
+  } catch (error) {
+    console.warn('Claude processor not available:', error.message);
+    processMetaprompt = null;
+    isMetapromptTemplate = null;
+  }
+})();
+
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
@@ -439,20 +454,63 @@ app.post('/automatic-metaprompt', async (req, res) => {
         throw new Error('No strategy recommendation received from MCP server');
       }
       
+      // Check if this is a Claude-ready format
+      const isClaudeFormat = (content) => {
+        if (typeof content === 'string') {
+          return content.includes('You are about to') || 
+                 content.includes('Your task is to') ||
+                 content.includes('<prompt>') ||
+                 content.includes('Please process') ||
+                 content.includes('auto_refine');
+        }
+        return false;
+      };
+      
       // Parse the response from MCP server
       let recommendation;
-      try {
-        recommendation = JSON.parse(content);
-      } catch (e) {
-        // If not JSON, create a basic recommendation
+      
+      if (isClaudeFormat(content)) {
+        // This is a Claude-ready prompt, extract metadata if possible
+        const strategyMatch = content.match(/strategy[:\s]+([^\n]+)/i);
+        const explanationMatch = content.match(/explanation[:\s]+([^\n]+)/i);
+        
         recommendation = {
           recommended_metaprompt: {
-            key: 'general',
-            name: 'General Strategy',
-            description: content,
-            explanation: 'Selected based on prompt analysis'
+            key: strategyMatch ? strategyMatch[1].trim().toLowerCase().replace(/\s+/g, '-') : 'auto-selected',
+            name: strategyMatch ? strategyMatch[1].trim() : 'Auto-Selected Strategy',
+            description: 'Claude-ready prompt for processing',
+            explanation: explanationMatch ? explanationMatch[1].trim() : 'This prompt has been formatted for direct use with Claude',
+            isClaudeReady: true
+          },
+          auto_refine: {
+            enabled: true,
+            prompt: content
           }
         };
+      } else {
+        try {
+          // Try to parse as JSON
+          recommendation = JSON.parse(content);
+          
+          // Check if auto_refine contains a Claude-ready prompt
+          if (recommendation.auto_refine && isClaudeFormat(recommendation.auto_refine)) {
+            recommendation.auto_refine = {
+              enabled: true,
+              prompt: recommendation.auto_refine,
+              isClaudeReady: true
+            };
+          }
+        } catch (e) {
+          // If not JSON, create a basic recommendation
+          recommendation = {
+            recommended_metaprompt: {
+              key: 'general',
+              name: 'General Strategy',
+              description: content,
+              explanation: 'Selected based on prompt analysis'
+            }
+          };
+        }
       }
       
       res.json(recommendation);
@@ -514,6 +572,17 @@ app.post('/refine-with-strategy', async (req, res) => {
     // Parse the MCP response into the expected format
     let response;
     
+    // Check if this is a Claude-ready format (contains instructions for Claude)
+    const isClaudeFormat = (content) => {
+      if (typeof content === 'string') {
+        return content.includes('You are about to') || 
+               content.includes('Your task is to') ||
+               content.includes('<prompt>') ||
+               content.includes('Please process');
+      }
+      return false;
+    };
+    
     // Handle prompts/get response format
     if (result.messages && result.messages.length > 0) {
       let content = result.messages[0].content || '';
@@ -521,14 +590,50 @@ app.post('/refine-with-strategy', async (req, res) => {
       if (typeof content === 'object' && content.text) {
         content = content.text;
       }
-      const sections = content.split('\n\n');
       
-      response = {
-        initialPromptEvaluation: sections[0] || '#### Original prompt analysis\n- Analyzing prompt structure and clarity',
-        refinedPrompt: sections[1] || prompt,
-        explanationOfRefinements: sections[2] || '#### Refinement Explanation\n- Applied strategy-specific improvements',
-        fullResponse: result
-      };
+      // Check if this is a metaprompt template that needs processing
+      if (processMetaprompt && isMetapromptTemplate && isMetapromptTemplate(content)) {
+        console.log('Detected metaprompt template, processing with Claude...');
+        try {
+          const refinedPrompt = await processMetaprompt(content, prompt);
+          response = {
+            initialPromptEvaluation: '#### Metaprompt Template Applied\nUsed Claude to process the metaprompt template with your input.',
+            refinedPrompt: refinedPrompt,
+            explanationOfRefinements: '#### Processing Details\nThe metaprompt template was processed through Claude API to generate a refined prompt specifically tailored to your request.',
+            isProcessed: true,
+            fullResponse: result
+          };
+        } catch (error) {
+          console.error('Failed to process metaprompt:', error);
+          // Fall back to showing the template
+          response = {
+            initialPromptEvaluation: '#### Metaprompt Template\nThis is a template that requires Claude API processing.',
+            refinedPrompt: content,
+            explanationOfRefinements: '#### Template Instructions\nSet ANTHROPIC_API_KEY in .env file to enable automatic processing of metaprompt templates.',
+            isTemplate: true,
+            fullResponse: result
+          };
+        }
+      }
+      // Check if this is a Claude-ready prompt format
+      else if (isClaudeFormat(content)) {
+        response = {
+          initialPromptEvaluation: '#### Claude-Ready Prompt\nThis response contains instructions for Claude to process.',
+          refinedPrompt: content,
+          explanationOfRefinements: '#### Format Explanation\nThis is a structured prompt ready for Claude to execute. Copy the refined prompt section and use it directly with Claude.',
+          isClaudeReady: true,
+          fullResponse: result
+        };
+      } else {
+        const sections = content.split('\n\n');
+        
+        response = {
+          initialPromptEvaluation: sections[0] || '#### Original prompt analysis\n- Analyzing prompt structure and clarity',
+          refinedPrompt: sections[1] || prompt,
+          explanationOfRefinements: sections[2] || '#### Refinement Explanation\n- Applied strategy-specific improvements',
+          fullResponse: result
+        };
+      }
     } 
     // Handle tools/call response format
     else if (result.content && result.content[0]) {
@@ -537,23 +642,58 @@ app.post('/refine-with-strategy', async (req, res) => {
         content = content.text;
       }
       
-      // Try to parse as JSON first
-      try {
-        const parsed = JSON.parse(content);
+      // Check if this is a metaprompt template that needs processing
+      if (processMetaprompt && isMetapromptTemplate && isMetapromptTemplate(content)) {
+        console.log('Detected metaprompt template, processing with Claude...');
+        try {
+          const refinedPrompt = await processMetaprompt(content, prompt);
+          response = {
+            initialPromptEvaluation: '#### Metaprompt Template Applied\nUsed Claude to process the metaprompt template with your input.',
+            refinedPrompt: refinedPrompt,
+            explanationOfRefinements: '#### Processing Details\nThe metaprompt template was processed through Claude API to generate a refined prompt specifically tailored to your request.',
+            isProcessed: true,
+            fullResponse: result
+          };
+        } catch (error) {
+          console.error('Failed to process metaprompt:', error);
+          // Fall back to showing the template
+          response = {
+            initialPromptEvaluation: '#### Metaprompt Template\nThis is a template that requires Claude API processing.',
+            refinedPrompt: content,
+            explanationOfRefinements: '#### Template Instructions\nSet ANTHROPIC_API_KEY in .env file to enable automatic processing of metaprompt templates.',
+            isTemplate: true,
+            fullResponse: result
+          };
+        }
+      }
+      // Check if this is a Claude-ready prompt format
+      else if (isClaudeFormat(content)) {
         response = {
-          initialPromptEvaluation: parsed.initial_prompt_evaluation || parsed.initialPromptEvaluation || '#### Original prompt analysis\n- Analyzing prompt structure and clarity',
-          refinedPrompt: parsed.refined_prompt || parsed.refinedPrompt || prompt,
-          explanationOfRefinements: parsed.explanation_of_refinements || parsed.explanationOfRefinements || '#### Refinement Explanation\n- Applied strategy-specific improvements',
+          initialPromptEvaluation: '#### Claude-Ready Prompt\nThis response contains instructions for Claude to process.',
+          refinedPrompt: content,
+          explanationOfRefinements: '#### Format Explanation\nThis is a structured prompt ready for Claude to execute. Copy the refined prompt section and use it directly with Claude.',
+          isClaudeReady: true,
           fullResponse: result
         };
-      } catch (e) {
-        // If not JSON, treat as plain text
-        response = {
-          initialPromptEvaluation: '#### Original prompt analysis\n- Analyzing prompt structure and clarity',
-          refinedPrompt: content || prompt,
-          explanationOfRefinements: '#### Refinement Explanation\n- Applied strategy-specific improvements',
-          fullResponse: result
-        };
+      } else {
+        // Try to parse as JSON first
+        try {
+          const parsed = JSON.parse(content);
+          response = {
+            initialPromptEvaluation: parsed.initial_prompt_evaluation || parsed.initialPromptEvaluation || '#### Original prompt analysis\n- Analyzing prompt structure and clarity',
+            refinedPrompt: parsed.refined_prompt || parsed.refinedPrompt || prompt,
+            explanationOfRefinements: parsed.explanation_of_refinements || parsed.explanationOfRefinements || '#### Refinement Explanation\n- Applied strategy-specific improvements',
+            fullResponse: result
+          };
+        } catch (e) {
+          // If not JSON, treat as plain text
+          response = {
+            initialPromptEvaluation: '#### Original prompt analysis\n- Analyzing prompt structure and clarity',
+            refinedPrompt: content || prompt,
+            explanationOfRefinements: '#### Refinement Explanation\n- Applied strategy-specific improvements',
+            fullResponse: result
+          };
+        }
       }
     } 
     // Fallback format

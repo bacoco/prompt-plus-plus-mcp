@@ -53,8 +53,10 @@
     "ui:dev": "cd UI/prompt-plus-ui && npm run dev"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.54.0",
     "@modelcontextprotocol/sdk": "^1.0.0",
     "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "socket.io": "^4.8.1",
     "zod": "^3.25.63"
