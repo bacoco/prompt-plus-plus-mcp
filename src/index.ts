@@ -13,6 +13,9 @@ import { StrategyManager } from './strategy-manager.js';
 import { PromptRefiner } from './prompt-refiner.js';
 import { WorkflowFactory } from './workflow-factory.js';
 import { logger } from './logger.js';
+import { errorHandler, handleError } from './error-handler.js';
+import { ValidationError, MCPProtocolError, createError, ErrorCode } from './errors.js';
+import { validateToolInput, validatePromptArgs } from './validation-schemas.js';
 
 export class PromptPlusMCPServer {
   private server: Server;
@@ -296,41 +299,39 @@ export class PromptPlusMCPServer {
       };
     });
 
-    // Handle tool calls
+    // Handle tool calls with validation and error handling
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name, arguments: args } = request.params;
 
-      try {
-        if (name === 'list_strategies') {
-          return this.handleListStrategies();
-        } else if (name === 'get_strategy_details') {
-          const strategy = args?.strategy as string;
-          if (!strategy) {
-            throw new Error('Strategy parameter is required');
-          }
-          return this.handleGetStrategyDetails(strategy);
-        } else if (name === 'discover_strategies') {
-          return this.handleDiscoverStrategies();
-        } else if (name === 'get_performance_metrics') {
-          return this.handleGetPerformanceMetrics();
-        } else if (name === 'health_check') {
-          return this.handleHealthCheck();
-        } else if (name === 'list_custom_strategies') {
-          return this.handleListCustomStrategies();
-        } else if (name === 'list_collections') {
-          return this.handleListCollections();
-        } else if (name === 'manage_collection') {
-          return this.handleManageCollection(args || {});
-        } else {
-          throw new Error(`Unknown tool: ${name}`);
+      return handleError(async () => {
+        // Validate input
+        const validatedArgs = validateToolInput(name, args || {});
+
+        switch (name) {
+          case 'list_strategies':
+            return this.handleListStrategies();
+          case 'get_strategy_details':
+            return this.handleGetStrategyDetails((validatedArgs as any).strategy);
+          case 'discover_strategies':
+            return this.handleDiscoverStrategies();
+          case 'get_performance_metrics':
+            return this.handleGetPerformanceMetrics();
+          case 'health_check':
+            return this.handleHealthCheck();
+          case 'list_custom_strategies':
+            return this.handleListCustomStrategies();
+          case 'list_collections':
+            return this.handleListCollections();
+          case 'manage_collection':
+            return this.handleManageCollection(validatedArgs as any);
+          default:
+            throw createError(
+              ErrorCode.UNKNOWN_ERROR,
+              `Unknown tool: ${name}`,
+              { tool: name }
+            );
         }
-      } catch (error) {
-        logger.error('Tool call failed', { 
-          tool: name, 
-          error: error instanceof Error ? error.message : String(error) 
-        });
-        throw error;
-      }
+      }, { tool: name, args });
     });
   }
 
