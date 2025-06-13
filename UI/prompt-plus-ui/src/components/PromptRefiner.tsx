@@ -301,7 +301,7 @@ export const PromptRefiner: React.FC = () => {
       case 'active':
         return 'bg-blue-500 hover:bg-blue-600 text-white';
       default:
-        return '';
+        return 'glass glass-hover text-gray-700 dark:text-gray-300';
     }
   };
 
@@ -369,7 +369,7 @@ export const PromptRefiner: React.FC = () => {
             <Button
               onClick={handleAutomaticMetaprompt}
               disabled={isAnalyzing}
-              className={cn("w-full", getButtonClass(automaticButtonState))}
+              className={cn("w-full !text-gray-800", getButtonClass(automaticButtonState))}
             >
               {isAnalyzing ? (
                 <>
@@ -402,10 +402,10 @@ export const PromptRefiner: React.FC = () => {
                   key={method.id}
                   onClick={() => setMetaPromptChoice(method.id)}
                   className={cn(
-                    "p-3 rounded-xl text-sm font-medium transition-all glass-hover",
+                    "p-3 rounded-xl text-sm font-medium transition-all",
                     metaPromptChoice === method.id
-                      ? "liquid-button bg-gradient-to-r from-blue-500 to-purple-500 text-white"
-                      : "glass"
+                      ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg hover:shadow-xl transform hover:scale-105"
+                      : "glass glass-hover"
                   )}
                 >
                   {method.label}

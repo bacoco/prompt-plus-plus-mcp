@@ -1,29 +1,50 @@
-/* Button state styles for PromptRefiner */
+/* PromptRefiner specific button fixes */
+
+/* Force text color for all buttons in PromptRefiner */
+.max-w-7xl button:not([class*="bg-blue-"]):not([class*="bg-green-"]):not([class*="bg-orange-"]):not([class*="bg-gradient"]) {
+  color: rgb(31, 41, 55) !important;
+}
+
+.dark .max-w-7xl button:not([class*="bg-blue-"]):not([class*="bg-green-"]):not([class*="bg-orange-"]):not([class*="bg-gradient"]) {
+  color: rgb(243, 244, 246) !important;
+}
+
+/* Specific fix for Prompt Examples button */
+button:has(.lucide-chevron-down),
+button:has(.lucide-chevron-up) {
+  color: rgb(31, 41, 55) !important;
+}
+
+.dark button:has(.lucide-chevron-down),
+.dark button:has(.lucide-chevron-up) {
+  color: rgb(243, 244, 246) !important;
+}
+
+/* Button states */
 .button-highlight {
   background-color: rgb(249 115 22) !important; /* orange-500 */
   color: white !important;
 }
 
-.button-highlight:hover {
-  background-color: rgb(234 88 12) !important; /* orange-600 */
-}
-
-.button-completed {
-  background-color: rgb(34 197 94) !important; /* green-500 */
+/* Force button states to work with w-full */
+button.w-full.bg-orange-500 {
+  background-color: rgb(249 115 22) !important;
   color: white !important;
 }
 
-.button-completed:hover {
-  background-color: rgb(22 163 74) !important; /* green-600 */
+button.w-full.bg-green-500 {
+  background-color: rgb(34 197 94) !important;
+  color: white !important;
 }
 
-.button-waiting {
-  background-color: rgb(209 213 219) !important; /* gray-300 */
-  color: rgb(75 85 99) !important; /* gray-600 */
+button.w-full.bg-blue-500 {
+  background-color: rgb(59 130 246) !important;
+  color: white !important;
 }
 
-.button-waiting:hover {
-  background-color: rgb(156 163 175) !important; /* gray-400 */
+button.w-full.bg-gray-300 {
+  background-color: rgb(209 213 219) !important;
+  color: rgb(75 85 99) !important;
 }
 
 .button-active {
@@ -33,4 +54,56 @@
 
 .button-active:hover {
   background-color: rgb(37 99 235) !important; /* blue-600 */
+}
+
+/* Force visibility for all interactive elements */
+.max-w-7xl button,
+.max-w-7xl [role="button"] {
+  min-height: 36px;
+  position: relative;
+}
+
+/* Ensure icons inherit parent color */
+.max-w-7xl button svg {
+  color: currentColor;
+}
+
+/* Override any transparent text */
+.max-w-7xl button {
+  opacity: 1 !important;
+}
+
+/* Fix for Automatic Choice button specifically */
+button.glass.glass-hover {
+  color: rgb(31, 41, 55) !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark button.glass.glass-hover {
+  color: rgb(243, 244, 246) !important;
+  background: rgba(30, 41, 59, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+button.glass.glass-hover:hover {
+  background: rgba(255, 255, 255, 0.95) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.25);
+}
+
+.dark button.glass.glass-hover:hover {
+  background: rgba(30, 41, 59, 0.95) !important;
+}
+
+/* Specific override for buttons with outline variant */
+button[class*="outline"][class*="border"] {
+  color: rgb(31, 41, 55) !important;
+  border-color: rgb(209, 213, 219) !important;
+}
+
+.dark button[class*="outline"][class*="border"] {
+  color: rgb(243, 244, 246) !important;
+  border-color: rgb(75, 85, 99) !important;
 }

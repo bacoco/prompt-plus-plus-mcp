@@ -1,0 +1,123 @@
+/* Button Text Visibility Fixes */
+
+/* Ensure text is visible on gradient backgrounds */
+.bg-gradient-to-r.text-white {
+  color: white !important;
+}
+
+/* Meta prompt button selected state */
+button.bg-gradient-to-r.from-blue-500.to-purple-500 {
+  color: white !important;
+  font-weight: 600;
+}
+
+/* Ensure proper contrast for all gradient buttons */
+[class*="bg-gradient-to-r"] {
+  position: relative;
+  z-index: 1;
+}
+
+[class*="bg-gradient-to-r"] > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Fix for all buttons with glass background */
+button.glass,
+.glass button,
+button[class*="glass"] {
+  color: rgb(31, 41, 55) !important; /* gray-800 */
+}
+
+.dark button.glass,
+.dark .glass button,
+.dark button[class*="glass"] {
+  color: rgb(243, 244, 246) !important; /* gray-100 */
+}
+
+/* Ensure liquid buttons have proper text color */
+.liquid-button {
+  color: rgb(31, 41, 55) !important; /* gray-800 */
+}
+
+.dark .liquid-button {
+  color: rgb(243, 244, 246) !important; /* gray-100 */
+}
+
+/* Selected/Active button states */
+button.bg-blue-500,
+button.bg-green-500,
+button.bg-purple-500,
+button.bg-orange-500,
+button[class*="bg-gradient"] {
+  color: white !important;
+}
+
+/* Glass hover states */
+.glass-hover:hover {
+  color: rgb(31, 41, 55) !important;
+}
+
+.dark .glass-hover:hover {
+  color: rgb(243, 244, 246) !important;
+}
+
+/* Specific button state classes from PromptRefiner */
+.button-active,
+.button-completed,
+.button-highlight {
+  color: white !important;
+}
+
+.button-waiting {
+  color: rgb(75, 85, 99) !important; /* gray-600 */
+}
+
+/* Dropdown and expandable buttons */
+button[aria-expanded],
+button[role="button"] {
+  color: inherit;
+}
+
+/* Fix contrast for semi-transparent backgrounds */
+.bg-white\\/10 button,
+.bg-black\\/10 button {
+  color: currentColor !important;
+}
+
+/* Ensure button text is always readable */
+button {
+  min-contrast: 4.5;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Fix for Button component from ui/button */
+[class*="rounded-xl"][class*="border"] {
+  color: rgb(31, 41, 55) !important;
+}
+
+.dark [class*="rounded-xl"][class*="border"] {
+  color: rgb(243, 244, 246) !important;
+}
+
+/* Specific fix for outline variant buttons */
+button[class*="border-2"] {
+  color: rgb(31, 41, 55) !important;
+}
+
+.dark button[class*="border-2"] {
+  color: rgb(243, 244, 246) !important;
+}
+
+/* Fix for flex buttons with icons */
+button.flex {
+  color: inherit;
+}
+
+button.flex:not([class*="bg-"]):not([class*="gradient"]) {
+  color: rgb(31, 41, 55) !important;
+}
+
+.dark button.flex:not([class*="bg-"]):not([class*="gradient"]) {
+  color: rgb(243, 244, 246) !important;
+}
