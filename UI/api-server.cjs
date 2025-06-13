@@ -75,6 +75,11 @@ app.get('/strategies/:id', async (req, res) => {
   }
   const strategy = strategiesCache.find(s => s.id === req.params.id);
   if (strategy) {
+    // Debug logging
+    if (strategy.id === 'done' || strategy.id === 'core_strategies/done') {
+      console.log('Done strategy content keys:', Object.keys(strategy.content || {}));
+      console.log('Has template:', !!strategy.content?.template);
+    }
     res.json(strategy);
   } else {
     res.status(404).json({ error: 'Strategy not found' });

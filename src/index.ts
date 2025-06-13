@@ -347,6 +347,7 @@ export class PromptPlusMCPServer {
         examples: strategy.examples.slice(0, 2),
         complexity: strategy.complexity,
         timeInvestment: strategy.timeInvestment,
+        template: strategy.template, // Add the full template
       };
     }
 

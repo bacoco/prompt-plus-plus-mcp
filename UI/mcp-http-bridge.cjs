@@ -248,7 +248,10 @@ app.get('/strategies', async (req, res) => {
       name: s.name || 'Unnamed Strategy',
       description: s.description || 'No description available',
       category: s.category || s.customCategory || 'uncategorized',
-      content: s.content || s,
+      content: {
+        ...s,
+        template: s.template || s.template_preview || null
+      },
       examples: Array.isArray(s.examples) ? s.examples : (s.examples ? [s.examples] : [])
     }));
 

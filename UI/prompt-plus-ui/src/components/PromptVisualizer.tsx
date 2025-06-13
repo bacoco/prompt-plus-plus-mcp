@@ -159,7 +159,7 @@ export const PromptVisualizer: React.FC<PromptVisualizerProps> = ({ content, cla
       title: 'Prompt Template',
       icon: <FileText className="h-5 w-5" />,
       color: 'green',
-      content: content.prompt,
+      content: content.prompt || content.template, // Also check for 'template' field
       description: 'Main prompt structure and instructions'
     },
     {
